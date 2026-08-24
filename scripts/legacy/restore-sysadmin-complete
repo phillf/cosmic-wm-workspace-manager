@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SNAPSHOT="sysadmin-complete-2026-08-24"
+
+# Avoid reusing an existing GitKraken window from another workspace.
+pkill -x gitkraken 2>/dev/null || true
+
+for _ in {1..50}; do
+  pgrep -x gitkraken >/dev/null || break
+  sleep 0.2
+done
+
+exec cosmic-wm restore --timeout 90 --debug "$SNAPSHOT"

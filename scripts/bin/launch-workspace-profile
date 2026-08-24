@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+PROFILE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/cosmic-wm-manager/profiles"
+DEFAULT_PROFILE="${DEFAULT_PROFILE:-sysadmin}"
+mode="${1:---prompt}"
+
+profile_launcher() {
+  case "$1" in
+    sysadmin) printf '%s\n' "$HOME/bin/startSysadmin.sh" ;;
+    dev)      printf '%s\n' "$HOME/bin/startDev.sh" ;;
+    *)        return 1 ;;
+  esac
+}
+
+profile_available() {
+  local profile="$1"
+  local launcher
+
+  launcher="$(profile_launcher "$profile")" || return 1
+  [[ -x "$launcher" ]] || return 1
+
+  case "$profile" in
+    sysadmin)
+      compgen -G "$PROFILE_DIR/sysadmin-ws*.yaml" >/dev/null
+      ;;
+    dev)
+      [[ -f "$PROFILE_DIR/dev.yaml" ]]
+      ;;
+  esac
+}
+
+launch_profile() {
+  local profile="$1"
+  local launcher
+
+  launcher="$(profile_launcher "$profile")" || {
+    echo "Unsupported workspace profile: $profile" >&2
+    exit 2
+  }
+
+  profile_available "$profile" || {
+    echo "Unavailable profile or launcher: $profile" >&2
+    exit 1
+  }
+
+  exec "$launcher"
+}
+
+choose_profile() {
+  local profile
+  local -a profiles=()
+
+  for profile in sysadmin dev; do
+    profile_available "$profile" && profiles+=("$profile")
+  done
+
+  ((${#profiles[@]} > 0)) || {
+    echo "No valid workspace profiles were found in: $PROFILE_DIR" >&2
+    exit 1
+  }
+
+  if command -v zenity >/dev/null 2>&1; then
+    zenity --list \
+      --title='CT Workspace Profile' \
+      --text='Select a workspace profile to launch:' \
+      --column='Profile' \
+      --width=460 \
+      --height=260 \
+      "${profiles[@]}" || exit 0
+    return 0
+  fi
+
+  if ((${#profiles[@]} == 1)); then
+    printf '%s\n' "${profiles[0]}"
+    return 0
+  fi
+
+  printf '%s\n' 'Zenity is not installed; cannot show a graphical profile chooser.' >&2
+  exit 1
+}
+
+case "$mode" in
+  --prompt)
+    launch_profile "$(choose_profile)"
+    ;;
+  --default)
+    launch_profile "$DEFAULT_PROFILE"
+    ;;
+  --profile)
+    [[ $# -eq 2 ]] || {
+      echo "Usage: $0 --profile <sysadmin|dev>" >&2
+      exit 2
+    }
+    launch_profile "$2"
+    ;;
+  *)
+    echo "Usage: $0 [--prompt|--default|--profile <sysadmin|dev>]" >&2
+    exit 2
+    ;;
+esac

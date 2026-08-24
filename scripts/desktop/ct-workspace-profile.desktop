@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=CT Workspace Profile
+Comment=Choose and launch a COSMIC workspace profile
+Exec=/home/pjfernandes/bin/launch-workspace-profile --prompt
+Icon=preferences-desktop-workspaces
+Terminal=false
+StartupNotify=true
+Categories=System;Utility;

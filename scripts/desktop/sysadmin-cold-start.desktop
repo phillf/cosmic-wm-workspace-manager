@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Start Sysadmin Desktop
+Comment=Cold-start Sysadmin workspaces 1 through 6
+Exec=/home/pjfernandes/.local/bin/start-sysadmin-cold
+Terminal=true
+Icon=utilities-terminal
+Categories=System;
+StartupNotify=true

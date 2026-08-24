@@ -1,0 +1,37 @@
+# Editor and operating-system files
+.DS_Store
+*~
+*.swp
+*.swo
+
+# Python runtime and local build output
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Logs, captures, backups, and generated state
+*.log
+*.bak
+*.bak.*
+*.orig
+*.tmp
+*.lock
+tmp/
+state/
+logs/
+
+# Secrets and user-specific runtime material
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+private/
+
+# Browser/session data must never be versioned
+browser-profiles/
+cookies/
+sessionstore*

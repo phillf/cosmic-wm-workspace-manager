@@ -1,0 +1,29 @@
+name: sysadmin-ws6
+description: CT Sysadmin workspace 6 — communications and client tools
+monitors: []
+apps:
+  - command: slack
+    workspace: 6
+    match:
+      class: Slack
+
+  - command: /usr/bin/discord
+    workspace: 6
+    match:
+      class: discord
+
+  - command: gitkraken
+    workspace: 6
+    match:
+      class: gitkraken
+      title: GitKraken Desktop
+
+  - command: signal-desktop
+    workspace: 6
+    match:
+      class: signal
+
+  - command: /usr/bin/mattermost-desktop
+    workspace: 6
+    match:
+      class: Mattermost.Desktop

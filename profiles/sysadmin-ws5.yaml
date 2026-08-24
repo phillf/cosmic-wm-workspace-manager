@@ -1,0 +1,8 @@
+name: sysadmin-ws5
+description: CT Sysadmin workspace 5 — development
+monitors: []
+apps:
+  - command: code
+    workspace: 5
+    match:
+      class: code

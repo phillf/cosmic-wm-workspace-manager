@@ -1,0 +1,16 @@
+name: sysadmin-ws3
+description: CT Sysadmin workspace 3 — monitoring
+monitors: []
+apps:
+  - command: /home/pjfernandes/bin/workspace-term 3
+    workspace: 3
+    match:
+      class: me.creativetech.terminal.workspace3
+
+  - command: >-
+      /usr/bin/librewolf --new-window
+      https://grafana.com/
+    workspace: 3
+    match:
+      class: librewolf
+      title: "Grafana"

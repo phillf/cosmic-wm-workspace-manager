@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+PROFILE=""
+DRY_RUN=0
+CLEANUP_ONLY=0
+PURGE_ALL=0
+RESET_MODE=""
+RESET_APP_ID=""
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/cosmic-wm-manager"
+CLEANUP_DIR="$CONFIG_DIR/cleanup"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  workspace-profile --profile NAME [options]
+
+Options:
+  --profile NAME          COSMIC profile name, for example sysadmin or dev
+  --reset [APP_ID]        Close all profile windows, or only APP_ID, then launch it
+  --reset-keep-spotify    Preserve Spotify and its native mini-player entries
+  --cleanup-only          Perform reset cleanup but do not launch the profile
+  --dry-run               Print reset/start actions without changing windows
+  -h, --help              Show this help
+EOF
+}
+
+while (($#)); do
+  case "$1" in
+    --profile)
+      [[ $# -ge 2 ]] || { echo '--profile requires a name.' >&2; exit 2; }
+      PROFILE="$2"
+      shift
+      ;;
+    --reset)
+      [[ -z "$RESET_MODE" && -z "$RESET_APP_ID" ]] || {
+        echo 'Choose only one reset mode.' >&2
+        exit 2
+      }
+      if [[ $# -ge 2 && "$2" != --* ]]; then
+        RESET_APP_ID="$2"
+        shift
+      else
+        RESET_MODE="strict"
+      fi
+      ;;
+    --reset-keep-spotify)
+      [[ -z "$RESET_MODE" ]] || { echo 'Choose only one reset mode.' >&2; exit 2; }
+      RESET_MODE="keep-spotify"
+      ;;
+    --cleanup-only)
+      CLEANUP_ONLY=1
+      ;;
+    --purge-all)
+      PURGE_ALL=1
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+[[ -n "$PROFILE" ]] || { echo '--profile is required.' >&2; exit 2; }
+[[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] || {
+  echo 'No graphical DISPLAY or WAYLAND_DISPLAY session detected.' >&2
+  exit 1
+}
+
+profile_file="$CONFIG_DIR/profiles/${PROFILE}.yaml"
+manifest_file="$CLEANUP_DIR/${PROFILE}.apps"
+
+[[ -r "$profile_file" ]] || {
+  echo "Profile not found: $profile_file" >&2
+  exit 1
+}
+
+if (( CLEANUP_ONLY )) && [[ -z "$RESET_MODE" && -z "$RESET_APP_ID" ]]; then
+  echo '--cleanup-only requires --reset [APP_ID] or --reset-keep-spotify.' >&2
+  exit 2
+fi
+
+app_present() {
+  local app_id="$1"
+  cos-cli info 2>/dev/null | grep -Fq "] ${app_id} ("
+}
+
+close_app_id() {
+  local app_id="$1"
+  local attempts=0
+
+  while app_present "$app_id"; do
+    attempts=$((attempts + 1))
+
+    if (( DRY_RUN )); then
+      printf '[dry-run] would close app_id: %s\n' "$app_id"
+      return 0
+    fi
+
+    printf '[closing] app_id: %s\n' "$app_id"
+    cos-cli close --app-id "$app_id" || true
+    sleep 0.4
+
+    if (( attempts >= 20 )); then
+      echo "[warning] Timed out waiting for app_id to close: $app_id" >&2
+      return 1
+    fi
+  done
+}
+
+list_visible_gui_app_ids() {
+  cosmic-wm status 2>/dev/null |
+    sed -nE \
+      's/^[[:space:]]*│[[:space:]]*[0-9]+[[:space:]]*│[[:space:]]*([^│[:space:]]+)[[:space:]]*│.*/\1/p' |
+    sort -u
+}
+
+cleanup_profile() {
+  if (( PURGE_ALL )); then
+    local app_id
+
+    printf '==> GUI purge mode: closing visible COSMIC windows'
+    if [[ "$RESET_MODE" == "keep-spotify" ]]; then
+      printf ' except Spotify'
+    fi
+    printf '.\n'
+
+    while IFS= read -r app_id; do
+      [[ -n "$app_id" ]] || continue
+
+      # Keep the invoking COSMIC Terminal open so this launcher continues.
+      if [[ "$app_id" == "com.system76.CosmicTerm" ]]; then
+        printf '[preserving] invoking terminal app_id: %s\n' "$app_id"
+        continue
+      fi
+
+      if [[ "$RESET_MODE" == "keep-spotify" && "$app_id" == "Spotify" ]]; then
+        printf '[preserving] app_id: %s\n' "$app_id"
+        continue
+      fi
+
+      close_app_id "$app_id" || true
+    done < <(list_visible_gui_app_ids)
+
+    return 0
+  fi
+
+  [[ -r "$manifest_file" ]] || {
+    echo "Cleanup manifest not found: $manifest_file" >&2
+    return 1
+  }
+
+  while IFS=$'\t' read -r app_id group; do
+    [[ -n "$app_id" && "${app_id:0:1}" != "#" ]] || continue
+
+    if [[ "$RESET_MODE" == "keep-spotify" && "$group" == "spotify" ]]; then
+      printf '[preserving] app_id: %s\n' "$app_id"
+      continue
+    fi
+
+    close_app_id "$app_id" || true
+  done < "$manifest_file"
+}
+
+if [[ -n "$RESET_APP_ID" ]]; then
+  printf '==> Selective reset: app_id=%s (profile: %s)\n' "$RESET_APP_ID" "$PROFILE"
+  close_app_id "$RESET_APP_ID" || true
+elif [[ -n "$RESET_MODE" ]]; then
+  printf '==> Reset mode: %s (profile: %s)\n' "$RESET_MODE" "$PROFILE"
+  cleanup_profile
+fi
+
+if (( CLEANUP_ONLY )); then
+  exit 0
+fi
+
+if (( DRY_RUN )); then
+  printf '[dry-run] would run: cosmic-wm start %q\n' "$PROFILE"
+else
+  exec cosmic-wm start "$PROFILE" --timeout "${COSMIC_WM_TIMEOUT:-90}"
+fi

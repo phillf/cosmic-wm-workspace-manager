@@ -1,0 +1,48 @@
+name: sysadmin-ws2
+description: CT Sysadmin workspace 2 — infrastructure administration
+monitors: []
+apps:
+  # Center: workspace terminal. COSMIC tiling will set its final geometry.
+  - command: /home/pjfernandes/bin/workspace-term 2
+    workspace: 2
+    match:
+      class: me.creativetech.terminal.workspace2
+
+  # Upper-left: infrastructure window, PVE plus Portainer.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-infra --new-window
+      https://pve.creativetech.me/
+      --new-tab https://portainer.creativetech.me/
+    workspace: 2
+    match:
+      class: librewolf
+      title: "Proxmox Virtual Environment"
+
+  # Lower-left: backup/management window, PBS plus PDM.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-backup --new-window
+      https://pbs.creativetech.me/
+      --new-tab https://pdm.creativetech.me/
+    workspace: 2
+    match:
+      class: librewolf
+      title: "Proxmox Backup Server"
+
+  # Upper-right: GitLab window.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-gitlab --new-window
+      https://git.creativetech.me/
+    workspace: 2
+    match:
+      class: librewolf
+      title: "GitLab"
+
+  # Lower-right: Codex window with Atlas as a tab.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-codex --new-window
+      https://codex.creativetech.me/ops/
+      --new-tab https://atlas.creativetech.me/
+    workspace: 2
+    match:
+      class: librewolf
+      title: "Ops | CT Codex"

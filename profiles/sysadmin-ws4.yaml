@@ -1,0 +1,36 @@
+name: sysadmin-ws4
+description: CT Sysadmin workspace 4 — Home Automation
+monitors: []
+apps:
+  # Left: CT Codex Home Assistant documentation.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws4-codex --new-window
+      https://codex.creativetech.me/docker-stacks/docker02/homeassistant/?_highlight=home&_highlight=ass
+    workspace: 4
+    match:
+      class: librewolf
+      title: "Home Assistant | CT Codex"
+
+  # Center: Home Assistant dashboard.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws4-home-assistant --new-window
+      https://ha-tst.creativetech.me/home/overview
+    workspace: 4
+    match:
+      class: librewolf
+      title: "Home Assistant"
+
+  # Dedicated Workspace 4 terminal.
+  - command: /home/pjfernandes/bin/workspace-term 4
+    workspace: 4
+    match:
+      class: me.creativetech.terminal.workspace4
+
+  # Right: Perplexity Home Automation project.
+  - command: >-
+      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws4-home-automation-ai --new-window
+      https://www.perplexity.ai/projects/ceb715a6-26e6-49e4-af03-97308d473ef3
+    workspace: 4
+    match:
+      class: librewolf
+      title: "Home Automation | Perplexity"

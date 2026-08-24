@@ -1,0 +1,82 @@
+name: sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
+description: Reroute-only snapshot; excludes WS7 and stale WS1 LibreWolf matcher
+monitors: []
+apps:
+- command: spotify
+  workspace: 1
+  match:
+    class: Spotify
+- command: /usr/bin/wezterm-gui start --always-new-process --class me.creativetech.terminal.workspace2
+    -- bash -lc exec "$SHELL"
+  workspace: 2
+  match:
+    class: me.creativetech.terminal.workspace2
+- command: /usr/share/librewolf/librewolf
+  workspace: 2
+  match:
+    class: librewolf
+    title: pve - Proxmox Virtual Environm
+- command: /usr/share/librewolf/librewolf
+  workspace: 2
+  match:
+    class: librewolf
+    title: "pbs - Proxmox Backup Server \u2014 "
+- command: /usr/share/librewolf/librewolf
+  workspace: 2
+  match:
+    class: librewolf
+    title: "Home \xB7 GitLab \u2014 LibreWolf"
+- command: /usr/bin/wezterm-gui start --always-new-process --class me.creativetech.terminal.workspace4
+    -- bash -lc exec "$SHELL"
+  workspace: 4
+  match:
+    class: me.creativetech.terminal.workspace4
+- command: /usr/bin/wezterm-gui start --always-new-process --class me.creativetech.terminal.workspace3
+    -- bash -lc exec "$SHELL"
+  workspace: 3
+  match:
+    class: me.creativetech.terminal.workspace3
+- command: /usr/share/librewolf/librewolf
+  workspace: 3
+  match:
+    class: librewolf
+    title: Full-stack observability for t
+- command: code
+  workspace: 5
+  match:
+    class: code
+- command: flatpak run com.discordapp.Discord
+  workspace: 6
+  match:
+    class: discord
+- command: /usr/bin/slack
+  workspace: 6
+  match:
+    class: slack
+- command: Mattermost.Desktop
+  workspace: 6
+  match:
+    class: Mattermost.Desktop
+- command: /opt/Signal/signal-desktop
+  workspace: 6
+  match:
+    class: signal
+- command: /usr/share/gitkraken/gitkraken
+  workspace: 6
+  match:
+    class: gitkraken
+- command: /usr/share/librewolf/librewolf
+  workspace: 4
+  match:
+    class: librewolf
+    title: "Home Automation | Perplexity \u2014"
+- command: /usr/share/librewolf/librewolf
+  workspace: 4
+  match:
+    class: librewolf
+    title: "Overview \u2013 Home Assistant \u2014 Li"
+- command: /usr/share/librewolf/librewolf
+  workspace: 2
+  match:
+    class: librewolf
+    title: "Ops | CT Codex \u2014 LibreWolf"

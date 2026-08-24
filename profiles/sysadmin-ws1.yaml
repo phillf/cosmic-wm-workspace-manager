@@ -1,0 +1,16 @@
+name: sysadmin-ws1
+description: CT Sysadmin workspace 1 — general browsing and music
+monitors: []
+apps:
+  - command: >-
+      /usr/bin/librewolf --new-window
+      https://www.youtube.com/
+    workspace: 1
+    match:
+      class: librewolf
+      title: "YouTube"
+
+  - command: spotify
+    workspace: 1
+    match:
+      class: Spotify

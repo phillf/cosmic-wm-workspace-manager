@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Start Sysadmin Script
+Comment=Runs startSysadmin.sh after graphical login
+Exec=/usr/bin/bash /home/pjfernandes/bin/startSysadmin.sh
+Path=/home/pjfernandes/bin
+Terminal=false
+X-GNOME-Autostart-enabled=true

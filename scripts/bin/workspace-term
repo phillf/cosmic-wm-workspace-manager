@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+workspace="${1:?Usage: workspace-term <workspace-number>}"
+
+command -v wezterm >/dev/null 2>&1 || {
+  echo "WezTerm is not installed." >&2
+  exit 1
+}
+
+case "$workspace" in
+  2)
+    app_id="me.creativetech.terminal.workspace2"
+    title="CT Workspace 2 Terminal"
+    label="workspace2"
+    ;;
+  3)
+    app_id="me.creativetech.terminal.workspace3"
+    title="CT Workspace 3 Terminal"
+    label="workspace3"
+    ;;
+  4)
+    app_id="me.creativetech.terminal.workspace4"
+    title="CT Workspace 4 Terminal"
+    label="workspace4"
+    ;;
+  *)
+    echo "Unsupported workspace: $workspace" >&2
+    exit 2
+    ;;
+esac
+
+export WS_LABEL="$label"
+export WS_WINDOW_TITLE="$title"
+
+exec wezterm start \
+  --always-new-process \
+  --class "$app_id" \
+  -- bash -lc 'exec "$SHELL"'
