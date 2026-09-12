@@ -9,7 +9,7 @@ apps:
 
   - command: >-
       /usr/bin/librewolf --new-window
-      https://grafana.com/
+      https://creativetech.grafana.net/login/
     workspace: 3
     match:
       class: librewolf

@@ -10,7 +10,7 @@ apps:
 
   # Upper-left: infrastructure window, PVE plus Portainer.
   - command: >-
-      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-infra --new-window
+      /usr/bin/librewolf --new-window
       https://pve.creativetech.me/
       --new-tab https://portainer.creativetech.me/
     workspace: 2
@@ -20,7 +20,7 @@ apps:
 
   # Lower-left: backup/management window, PBS plus PDM.
   - command: >-
-      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-backup --new-window
+      /usr/bin/librewolf --new-window
       https://pbs.creativetech.me/
       --new-tab https://pdm.creativetech.me/
     workspace: 2
@@ -30,7 +30,7 @@ apps:
 
   # Upper-right: GitLab window.
   - command: >-
-      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-gitlab --new-window
+      /usr/bin/librewolf --new-window
       https://git.creativetech.me/
     workspace: 2
     match:
@@ -39,7 +39,7 @@ apps:
 
   # Lower-right: Codex window with Atlas as a tab.
   - command: >-
-      /usr/bin/librewolf --no-remote --profile /home/pjfernandes/.config/librewolf/librewolf/sysadmin-ws2-codex --new-window
+      /usr/bin/librewolf --new-window
       https://codex.creativetech.me/ops/
       --new-tab https://atlas.creativetech.me/
     workspace: 2
