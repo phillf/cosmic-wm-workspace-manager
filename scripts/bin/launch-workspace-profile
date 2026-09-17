@@ -3,13 +3,15 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 
 PROFILE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/cosmic-wm-manager/profiles"
+SYSADMIN_LAUNCHER="${SYSADMIN_LAUNCHER:-$HOME/.local/bin/start-sysadmin-cold}"
+DEV_LAUNCHER="${DEV_LAUNCHER:-$HOME/bin/startDev.sh}"
 DEFAULT_PROFILE="${DEFAULT_PROFILE:-sysadmin}"
 mode="${1:---prompt}"
 
 profile_launcher() {
   case "$1" in
-    sysadmin) printf '%s\n' "$HOME/bin/startSysadmin.sh" ;;
-    dev)      printf '%s\n' "$HOME/bin/startDev.sh" ;;
+    sysadmin) printf '%s\n' "$SYSADMIN_LAUNCHER" ;;
+    dev)      printf '%s\n' "$DEV_LAUNCHER" ;;
     *)        return 1 ;;
   esac
 }
