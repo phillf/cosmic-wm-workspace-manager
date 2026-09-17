@@ -70,7 +70,7 @@ choose_profile() {
       --column='Profile' \
       --width=460 \
       --height=260 \
-      "${profiles[@]}" || exit 0
+      "${profiles[@]}" || return 1
     return 0
   fi
 
@@ -85,7 +85,9 @@ choose_profile() {
 
 case "$mode" in
   --prompt)
-    launch_profile "$(choose_profile)"
+    selected_profile="$(choose_profile)" || exit 0
+    [[ -n "$selected_profile" ]] || exit 0
+    launch_profile "$selected_profile"
     ;;
   --default)
     launch_profile "$DEFAULT_PROFILE"

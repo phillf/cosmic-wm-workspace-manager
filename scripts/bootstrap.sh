@@ -177,6 +177,14 @@ link_file \
   "$local_bin_dir/start-sysadmin-cold"
 
 link_file \
+  "$repo_dir/scripts/bin/workspace-term" \
+  "$user_bin_dir/workspace-term"
+
+link_file \
+  "$repo_dir/scripts/bin/workspace-profile" \
+  "$user_bin_dir/workspace-profile"
+
+link_file \
   "$repo_dir/scripts/bin/open-workspace-terminal" \
   "$user_bin_dir/open-workspace-terminal"
 
@@ -207,6 +215,8 @@ if (( ! dry_run )); then
   chmod 0755 \
     "$repo_dir/scripts/bootstrap.sh" \
     "$repo_dir/scripts/local-bin/start-sysadmin-cold" \
+    "$repo_dir/scripts/bin/workspace-term" \
+    "$repo_dir/scripts/bin/workspace-profile" \
     "$repo_dir/scripts/bin/open-workspace-terminal" \
     "$repo_dir/scripts/bin/launch-workspace-profile"
 fi
