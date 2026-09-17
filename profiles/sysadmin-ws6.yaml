@@ -11,12 +11,12 @@ apps:
     workspace: 6
     match:
       class: discord
+      title: Friends - Discord
 
   - command: gitkraken
     workspace: 6
     match:
       class: gitkraken
-      title: GitKraken Desktop
 
   - command: signal-desktop
     workspace: 6

@@ -6,4 +6,4 @@ cosmic-wm start sysadmin-ws2 --timeout 90
 cosmic-wm start sysadmin-ws3 --timeout 90
 cosmic-wm start sysadmin-ws4 --timeout 90
 cosmic-wm start sysadmin-ws5 --timeout 90
-cosmic-wm start sysadmin-ws6 --timeout 90
+cosmic-wm start sysadmin-ws6 --timeout 180
