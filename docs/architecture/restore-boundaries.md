@@ -2,40 +2,57 @@
 
 ## Two different operations
 
-A cold start and a live reroute solve different problems.
+A cold start and a live reroute solve different problems and must remain
+separate.
 
-| Operation | Source | Purpose |
-|---|---|---|
-| Cold start | `profiles/sysadmin-ws1.yaml` through `sysadmin-ws6.yaml` | Start the normal managed workspace set |
-| Live reroute | Approved 17-window session snapshot | Reassign already-open matched windows to WS1–WS6 |
+| Operation | Authoritative source | Purpose | Application scope |
+|---|---|---|---|
+| Cold start | `profiles/sysadmin-ws1.yaml` through `profiles/sysadmin-ws6.yaml` | Start the normal managed workspace set serially | Profile-defined native applications and LibreWolf windows |
+| Live reroute | `sessions/sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24.yaml` | Reassign matching already-open native windows to WS1–WS6 | Ten native application rules only |
 
-## What snapshot restore does
+## Native-only live reroute
 
-The snapshot records application launch commands, a workspace destination, and
-window match criteria such as app class and title. It can reuse a matching open
-window and route it to the assigned workspace.
+The approved session file is named
+`sysadmin-live-native-reroute` inside its YAML content. It has ten native
+application rules:
 
-## What snapshot restore does not do
+- WS1: Spotify
+- WS2: dedicated workspace terminal
+- WS3: dedicated workspace terminal
+- WS4: dedicated workspace terminal
+- WS5: Visual Studio Code
+- WS6: Discord, Slack, Mattermost, Signal, and GitKraken
 
-The saved session schema does not contain a tile tree, split orientation,
-in-workspace ordering, split ratios, floating coordinates, dimensions, stack
-membership, tab group state, or focus order.
+The snapshot deliberately contains no LibreWolf matcher and no LibreWolf
+command. A live reroute must not launch LibreWolf.
 
-Therefore successful output such as:
+## Why browsers are excluded
 
-```text
-All application windows matched and successfully organized
-```
+Browser page titles are dynamic. Title-based matching can fail after redirects,
+navigation, sign-in, changed active tabs, closed tabs, or a different window
+organization. Earlier browser-aware reroute snapshots could respond to an
+unmatched saved browser rule by launching a generic LibreWolf window.
 
-means windows were matched and assigned to workspaces. It does not mean the
-original visual workspace layout was restored.
+The browser-free boundary prevents a reroute from creating an unintended
+browser window. Intended browser windows remain the responsibility of the
+cold-start profiles.
 
-## Browser matching risk
+## What live reroute does
 
-LibreWolf snapshot entries are title-dependent. If a saved title no longer
-matches an open browser window, restore may treat it as missing and execute a
-generic browser command. A generic command can create an `about:blank` window.
+A live reroute can reuse a matching open native application window and assign it
+to its resident workspace. It is appropriate when a supported native app is
+already running but is on the wrong workspace.
 
-The approved snapshot removes the stale WS1 browser matcher that previously
-caused this behavior. Other title-based browser matchers remain sensitive to
-title changes and must be used only when the intended windows are already open.
+## What live reroute does not do
+
+The saved session schema does not restore:
+
+- Browser windows, browser tabs, page identity, or browser placement
+- Applications not listed in the native snapshot
+- WS7 assistant/control windows
+- Tile tree, split orientation, in-workspace ordering, split ratios, geometry,
+  floating coordinates, stack membership, tab group state, or focus order
+
+A successful restore message means that supported native windows matched and
+were assigned to workspaces. It does not mean the original visual layout was
+reconstructed.
