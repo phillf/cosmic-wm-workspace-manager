@@ -2,17 +2,35 @@
 
 ## Cold start
 
+Start the complete managed WS1–WS6 set:
+
 ```bash
 ~/.local/bin/start-sysadmin-cold
 ```
 
-## Status
+Use cold start when intended profile-defined applications or managed LibreWolf
+windows need to be launched.
+
+## Workspace profile chooser
+
+Open the graphical profile chooser:
 
 ```bash
-cosmic-wm status
+~/bin/launch-workspace-profile --prompt
 ```
 
-## Approved live reroute
+Select `sysadmin` to invoke `~/.local/bin/start-sysadmin-cold`.
+
+For the command-line compatibility launcher:
+
+```bash
+workspace-profile --profile sysadmin
+```
+
+## Native live reroute
+
+Use only when a supported native application window is already open and needs
+to be returned to its resident workspace:
 
 ```bash
 cosmic-wm restore \
@@ -21,7 +39,24 @@ cosmic-wm restore \
   sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
 ```
 
+The YAML name is `sysadmin-live-native-reroute`. Its ten supported native rules
+are Spotify; the WS2, WS3, and WS4 dedicated terminals; Visual Studio Code; and
+Discord, Slack, Mattermost, Signal, and GitKraken.
+
+It has no browser rules. Do not use it to start missing applications, launch
+LibreWolf, move browser windows, or manage WS7.
+
+## Status
+
+Inspect current COSMIC workspace/window state:
+
+```bash
+cosmic-wm status
+```
+
 ## Workspace terminals
+
+Open a dedicated terminal with its stable class:
 
 ```bash
 ~/bin/open-workspace-terminal 2
@@ -29,13 +64,12 @@ cosmic-wm restore \
 ~/bin/open-workspace-terminal 4
 ```
 
-## Deprecated or restricted commands
+## Restricted commands and artifacts
 
 | Artifact | Status |
 |---|---|
-| `restore-sysadmin-complete` | Do not run; obsolete snapshot name and GitKraken termination |
-| `workspace-profile --reset` | Do not treat as canonical; depends on legacy aggregate profile and cleanup manifests |
-| `configure-workspace-term.sh` | Historical mutation script |
-| `enable-dynamic-sysadmin-workspaces.sh` | Historical patch script |
-| `fix-sysadmin-browser-windows.py` | Historical patch script |
-| `guard-sysadmin-reset.sh` | Historical patch script |
+| `~/bin/backups/workspace-manager-cleanup-20260917-150404/` | Legacy archive for audit/rollback only |
+| Archived `startSysadmin.sh` | Do not run; replaced by `~/.local/bin/start-sysadmin-cold` |
+| Archived `restore-sysadmin-complete` | Do not run; obsolete snapshot and unsafe behavior |
+| Historical patch, conversion, and browser helper scripts | Do not run; retained in the dated archive |
+| `pkill librewolf` | Do not use for selective cleanup; may close unrelated or WS7 browser work |
