@@ -1,28 +1,48 @@
 # Live Reroute
 
+## Purpose
+
+Use live reroute only to correct the workspace assignment of already-open,
+supported native application windows.
+
+The approved snapshot is browser-free. It must not be used to launch LibreWolf
+or recreate missing browser windows.
+
 ## Approved snapshot
 
-```text
-sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
-```
-
-Repository file:
+The repository filename remains:
 
 ```text
 sessions/sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24.yaml
 ```
 
-It contains 17 managed applications for WS1 through WS6. It excludes WS7 and
-the stale WS1 LibreWolf matcher that previously launched a generic browser
-window.
+Its YAML name is:
+
+```text
+sysadmin-live-native-reroute
+```
+
+It contains exactly ten native rules:
+
+| Workspace | Managed native rules |
+|---|---|
+| WS1 | Spotify |
+| WS2 | Dedicated WS2 terminal |
+| WS3 | Dedicated WS3 terminal |
+| WS4 | Dedicated WS4 terminal |
+| WS5 | Visual Studio Code |
+| WS6 | Discord, Slack, Mattermost, Signal, GitKraken |
+
+WS7 and all LibreWolf windows are excluded.
 
 ## Preconditions
 
-- All intended managed windows are already open.
-- WS7 is treated as protected.
-- You accept that routing may change the current in-workspace tiling insertion
-  order.
-- You have checked that browser titles still correspond to the saved matchers.
+- The intended native application window is already open.
+- The window is one of the ten supported native rules.
+- WS7 is treated as protected and outside managed reroute.
+- You accept that a successful reroute may alter COSMIC's in-workspace tiling
+  insertion order.
+- You do not need live reroute to create or organize browser windows.
 
 ## Run
 
@@ -33,21 +53,21 @@ cosmic-wm restore \
   sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
 ```
 
-A successful run ends with:
-
-```text
-All application windows matched and successfully organized
-```
-
 ## Success criteria
 
-- 17 existing windows are reused.
-- No `Spawning process: /usr/share/librewolf/librewolf` message appears.
+- Matching native windows are routed to WS1 through WS6.
 - No timeout occurs.
-- Managed windows are routed to WS1 through WS6.
-- WS7 windows remain on WS7.
+- No browser process is spawned.
+- WS7 windows remain outside the operation.
+- The output ends with the successful organization message.
 
-## Important limitation
+If an expected native application is missing, stop rather than relying on
+live reroute to start it. Use cold start or an intentional manual launch for
+normal managed startup, then use native reroute only if an already-open supported
+window needs placement correction.
 
-This is a workspace-routing workflow only. It does not restore the preferred
-tile order, position, size, split ratio, floating geometry, or stack/tab layout.
+## Limitations
+
+Live reroute does not restore tile placement, order, geometry, split ratios,
+floating position, stack/tab layout, focus, browser windows, browser tabs, or
+browser page identity.

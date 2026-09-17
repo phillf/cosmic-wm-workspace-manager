@@ -2,27 +2,28 @@
 
 ## Approved
 
-| Snapshot | Intended use | Scope |
-|---|---|---|
-| `sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24` | Manual live reroute | 17 already-open managed windows, WS1–WS6 |
+| Snapshot file | YAML name | Intended use | Scope |
+|---|---|---|---|
+| `sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24.yaml` | `sysadmin-live-native-reroute` | Manual live reroute | Ten already-open native application windows in WS1–WS6 |
 
 ## Why it is approved
 
-The validated run:
+The current approved definition:
 
-- Reused all 17 current windows.
-- Matched all 17 windows.
-- Returned successfully.
-- Did not spawn generic LibreWolf.
-- Did not time out.
-- Excluded the WS7 protected LibreWolf and COSMIC Terminal entries.
+- Routes Spotify to WS1
+- Routes dedicated terminals to WS2, WS3, and WS4
+- Routes Visual Studio Code to WS5
+- Routes Discord, Slack, Mattermost, Signal, and GitKraken to WS6
+- Excludes WS7 assistant/control activity
+- Contains no LibreWolf matcher or command
+- Cannot launch a generic browser window through a failed browser title match
 
 ## Not approved
 
-Older snapshots are retained only outside this repository as historical
-artifacts. They include WS7 entries, stale browser matchers, or unvalidated
-routing definitions.
+Older browser-aware snapshots are historical artifacts only. Do not use them as
+live reroute input because their browser title matching can fail and may launch
+an unwanted generic LibreWolf window.
 
-In particular, do not use a snapshot that contains a generic LibreWolf command
-for a title matcher that is not currently open. It can create an `about:blank`
-LibreWolf window and wait for the configured timeout.
+Do not use a live reroute snapshot as a general cold-start replacement. Use
+the canonical cold-start profiles when applications—including managed browser
+windows—need to be launched.

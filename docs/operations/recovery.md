@@ -1,9 +1,26 @@
 # Recovery
 
-## Incorrect workspace assignment
+## Choose the correct operation
 
-Use the approved live-reroute snapshot only after opening the intended managed
-windows:
+| Situation | Safe response |
+|---|---|
+| Managed profile applications need to be started | Run the canonical cold start |
+| Already-open supported native app is on the wrong workspace | Run native-only live reroute |
+| Browser window is missing | Use its owning cold-start profile or intentionally launch it |
+| Browser window is misplaced | Move the identified window manually |
+| Native app is not covered by the ten rules | Move it manually or add a separately reviewed future rule |
+| Tile geometry or window order is wrong | Arrange manually with normal COSMIC tiling controls |
+| WS7 window moved or affected | Correct it manually; do not add WS7 to managed reroute |
+
+## Incorrect native workspace assignment
+
+First inspect the current state:
+
+```bash
+cosmic-wm status
+```
+
+If the window is a supported native application and is already open, run:
 
 ```bash
 cosmic-wm restore \
@@ -12,38 +29,48 @@ cosmic-wm restore \
   sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
 ```
 
-## Incorrect in-workspace placement
+Then inspect `cosmic-wm status` again. Do not expect the reroute to restore the
+previous tile layout.
 
-The current snapshot cannot repair tile geometry or ordering. Arrange windows
-manually with COSMIC's normal tiling controls after routing.
+## Missing or misplaced browser window
 
-Do not repeat restore expecting it to rebuild positions or sizes; it will route
-windows again but does not contain layout geometry.
+LibreWolf is outside live reroute. Do not add browser matchers or generic
+browser launch commands to the approved native snapshot.
 
-## Generic LibreWolf about:blank window
+If a managed browser window is missing, use the normal cold-start workflow or
+intentionally open the specific required page. If a browser window is simply on
+the wrong workspace, move that identified window manually.
 
-A generic LibreWolf launch means a snapshot browser matcher was not found.
+Never run:
 
-1. Close the unintended blank window if appropriate.
-2. Do not continue rerunning the same snapshot blindly.
-3. Identify the stale entry by comparing saved browser titles with:
-
-   ```bash
-   cosmic-wm status
-   ```
-
-4. Remove or update only the stale app block in a copied snapshot.
-5. Preserve WS7 exclusions in every replacement snapshot.
-6. Validate the modified snapshot with all intended windows open and a short
-   timeout.
-
-## Legacy complete restore
-
-Do not run:
-
-```text
-scripts/bin/restore-sysadmin-complete
+```bash
+pkill librewolf
 ```
 
-It references an absent `sysadmin-complete-2026-08-24` snapshot and terminates
-GitKraken before attempting restore.
+It can terminate unrelated shared-session browser work, including protected WS7
+assistant/control activity.
+
+## Unwanted browser window
+
+Close only the confirmed unwanted window through the desktop environment. Do
+not repeatedly rerun a prior browser-aware snapshot and do not perform broad
+browser process termination. See
+[Browser duplicates](../troubleshooting/browser-duplicates.md).
+
+## Incorrect in-workspace placement
+
+The current session schema cannot repair tile geometry or ordering. Arrange
+windows manually after routing. Repeating restore routes windows again; it does
+not reconstruct positions, sizes, or splits.
+
+## Obsolete legacy tools
+
+Do not run historical scripts archived under:
+
+```text
+~/bin/backups/workspace-manager-cleanup-20260917-150404/
+```
+
+They are retained only for audit or rollback and have had executable permission
+removed. In particular, do not use the archived `startSysadmin.sh` or
+`restore-sysadmin-complete`.

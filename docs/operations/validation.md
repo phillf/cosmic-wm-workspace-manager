@@ -1,46 +1,56 @@
 # Validation
 
-## Current desktop state
+## Inspect current workspace state
 
 ```bash
 cosmic-wm status
 ```
 
-## Preserve a before/after comparison
+Use status output to verify workspace assignments, window classes, and titles
+before deciding whether a native reroute is appropriate.
+
+## Validate a native live reroute
+
+Capture state before and after the reroute:
 
 ```bash
-cosmic-wm status > /tmp/cosmic-before-reroute.txt
+cosmic-wm status > /tmp/cosmic-before-native-reroute.txt
 
 cosmic-wm restore \
   --timeout 30 \
   --debug \
   sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
 
-cosmic-wm status > /tmp/cosmic-after-reroute.txt
+cosmic-wm status > /tmp/cosmic-after-native-reroute.txt
 
-diff -u /tmp/cosmic-before-reroute.txt /tmp/cosmic-after-reroute.txt | less
+diff -u \
+  /tmp/cosmic-before-native-reroute.txt \
+  /tmp/cosmic-after-native-reroute.txt | less
 ```
 
-Dynamic titles can change without indicating a failure. Spotify tracks and
-browser page titles commonly change while placement remains stable.
+Verify that the supported native applications moved to their resident
+workspaces: Spotify in WS1; dedicated terminals in WS2–WS4; Visual Studio Code
+in WS5; and Discord, Slack, Mattermost, Signal, and GitKraken in WS6.
 
-## Confirm WS7
+## Confirm WS7 remains outside reroute
 
-```bash
-cosmic-wm status | grep -Ei \
-  'start login script pop_os|com\.system76\.CosmicTerm'
-```
+Use `cosmic-wm status` to confirm the assistant/control LibreWolf and COSMIC
+Terminal activity remains in WS7. The approved native snapshot contains no
+workspace-7 rule.
 
-Expected result: the protected LibreWolf and COSMIC Terminal windows remain on
-workspace 7.
+## Confirm browser-free behavior
 
-## Confirm no browser spawn
+The approved native snapshot has no LibreWolf or Firefox rule. During a reroute
+test, investigate any unexpected browser process spawn; it is not expected
+behavior for this snapshot.
 
-During a reroute test, investigate any line containing:
+## Interpret output carefully
 
-```text
-Spawning process: /usr/share/librewolf/librewolf
-```
+Dynamic application state can change without indicating a routing failure:
 
-That generally indicates a title-based browser matcher did not find its intended
-already-open window.
+- Spotify track titles change.
+- Browser page titles and active tabs change.
+- Communication-client notification counts change.
+
+Validate workspace number and application identity first. The current tooling
+does not validate or restore precise tile layout, geometry, or focus order.

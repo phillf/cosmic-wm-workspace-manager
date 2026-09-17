@@ -1,20 +1,27 @@
 # Cold Start
 
-## Canonical command
+## Purpose
 
-The canonical cold-start launcher is:
+Use a cold start to launch the normal managed workspace set after a controlled
+login or when the intended profile-defined applications need to be started.
+
+Cold start owns the initial launch of native applications and the intended
+LibreWolf windows defined by the WS1–WS6 profiles.
+
+## Canonical command
 
 ```bash
 ~/.local/bin/start-sysadmin-cold
 ```
 
-Its repository copy is:
+The repository source is:
 
 ```text
 scripts/local-bin/start-sysadmin-cold
 ```
 
-It starts these profiles serially, with a 90-second timeout per profile:
+The launcher starts these profiles serially with a 90-second timeout per
+profile:
 
 ```text
 sysadmin-ws1
@@ -25,41 +32,46 @@ sysadmin-ws5
 sysadmin-ws6
 ```
 
-## Desktop entry
+The `sysadmin` option in `~/bin/launch-workspace-profile` delegates to this
+same canonical cold-start launcher.
 
-The corresponding desktop entry is:
+## When to use it
 
-```text
-scripts/desktop/sysadmin-cold-start.desktop
-```
+Use cold start when:
 
-Its deployed form invokes:
+- Starting the managed workstation layout after graphical login
+- Recreating intended profile-defined browser windows
+- Starting missing managed applications intentionally
+- Performing a controlled fresh start of WS1–WS6
 
-```text
-/home/pjfernandes/.local/bin/start-sysadmin-cold
-```
+Do not use cold start merely to move a supported native application that is
+already open on the wrong workspace. Use the native-only live reroute for that
+case.
 
-## Validation
+## Desktop launchers
 
-After a cold start:
+Two tracked desktop assets invoke the canonical startup path:
+
+| Asset | Purpose |
+|---|---|
+| `scripts/desktop/sysadmin-cold-start.desktop` | Manual cold-start application launcher |
+| `scripts/autostart/start-sysadmin.desktop` | Optional graphical-login autostart source |
+
+The profile chooser desktop shortcut invokes
+`~/bin/launch-workspace-profile --prompt`; selecting `sysadmin` runs the same
+cold-start launcher.
+
+## Validate after startup
+
+Run:
 
 ```bash
 cosmic-wm status
 ```
 
-Confirm that expected windows are present in WS1 through WS6. Do not expect
-exact tile arrangement, geometry, sizes, or split ratios to be reconstructed by
-the current tooling.
+Confirm expected managed applications are present in WS1 through WS6. Browser
+windows are launched by their owning profiles, but their current page title,
+active tab, and tab organization can change after startup.
 
-## Canonical application commands
-
-The profile files are authoritative. In particular, the tested WS6 commands
-are:
-
-```text
-/usr/bin/discord
-/usr/bin/mattermost-desktop
-```
-
-Do not replace them with snapshot-inferred commands such as
-`flatpak run com.discordapp.Discord` or `Mattermost.Desktop`.
+The current tooling does not reconstruct tile order, geometry, split ratios,
+stack/tab groups, or focus order.
