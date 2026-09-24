@@ -118,3 +118,28 @@ Selecting `sysadmin` in that chooser invokes
 - Do not commit credentials, browser profiles, cookies, session stores, private
   URLs, or local runtime state.
 - Review every deployment and Git diff before applying it.
+
+## `ws-man` command library
+
+After running `./scripts/bootstrap.sh --force`, the repository installs a managed
+`~/bin/ws-man` symlink.
+
+```bash
+# Re-sync one existing sysadmin workspace.
+ws-man sysadmin 1
+ws-man sysadmin 6
+
+# The default timeout is 180 seconds; override it when needed.
+ws-man sysadmin 3 --timeout 45
+ws-man sysadmin 6 --timeout 300
+
+# Preview a command without launching applications or moving windows.
+ws-man sysadmin 4 --dry-run
+
+# Show current COSMIC application-to-workspace assignments.
+ws-man status
+```
+
+`ws-man` currently supports profile synchronization and status only. Managed
+window cleanup will be added separately after its manifests are repository-owned
+and bootstrap-managed.

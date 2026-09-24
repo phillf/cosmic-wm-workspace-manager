@@ -193,6 +193,10 @@ link_file \
   "$user_bin_dir/launch-workspace-profile"
 
 link_file \
+  "$repo_dir/scripts/bin/ws-man" \
+  "$user_bin_dir/ws-man"
+
+link_file \
   "$repo_dir/scripts/desktop/sysadmin-cold-start.desktop" \
   "$applications_dir/sysadmin-cold-start.desktop"
 
@@ -218,7 +222,8 @@ if (( ! dry_run )); then
     "$repo_dir/scripts/bin/workspace-term" \
     "$repo_dir/scripts/bin/workspace-profile" \
     "$repo_dir/scripts/bin/open-workspace-terminal" \
-    "$repo_dir/scripts/bin/launch-workspace-profile"
+    "$repo_dir/scripts/bin/launch-workspace-profile" \
+    "$repo_dir/scripts/bin/ws-man"
 fi
 
 cat <<EOF2
