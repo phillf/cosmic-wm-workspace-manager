@@ -26,3 +26,6 @@ workspaces:
           match:
             class: librewolf
             title: Grafana
+      scoped_profiles:
+        terminals: profiles/sysadmin-ws3-terminals.yaml
+        browsers: profiles/sysadmin-ws3-browsers.yaml

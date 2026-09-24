@@ -1,10 +1,13 @@
 # CT COSMIC Workspace Manager
 
-Repository-managed configuration, launch assets, and operating documentation for the CT COSMIC workstation workspace arrangement.
+Repository-managed configuration, launch assets, and operating documentation for
+the CT COSMIC workstation workspace arrangement.
 
 ## Scope
 
-WS1 through WS6 are the managed operational workspace range. WS7 is a protected assistant/control workspace and remains outside managed cold-start and live-reroute operations.
+WS1 through WS6 are the managed operational workspace range. WS7 is a protected
+assistant/control workspace and remains outside managed cold-start and live-reroute
+operations.
 
 The repository supports two separate workflows:
 
@@ -23,7 +26,9 @@ These workflows are not interchangeable.
 ~/.local/bin/start-sysadmin-cold
 ```
 
-This starts `sysadmin-ws1` through `sysadmin-ws6` serially. Use it after a controlled login or when intended profile-defined applications, including managed browser windows, need to be launched.
+This starts `sysadmin-ws1` through `sysadmin-ws6` serially. Use it after a
+controlled login or when intended profile-defined applications, including managed
+browser windows, need to be launched.
 
 ### Correct an already-open native window
 
@@ -34,7 +39,8 @@ cosmic-wm restore \
   sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
 ```
 
-The current approved YAML is named `sysadmin-live-native-reroute` and contains exactly ten native rules:
+The current approved YAML is named `sysadmin-live-native-reroute` and contains
+exactly ten native rules:
 
 - WS1: Spotify
 - WS2–WS4: dedicated workspace terminals
@@ -49,7 +55,8 @@ It excludes all browser windows and WS7.
 ws-man sysadmin 3
 ```
 
-This re-synchronizes the existing `sysadmin-ws3` profile with the default 180-second application/window matching timeout.
+This re-synchronizes the existing `sysadmin-ws3` profile with the default
+180-second application/window matching timeout.
 
 Preview a refresh without launching applications or moving windows:
 
@@ -97,14 +104,16 @@ docs/                Architecture, operations, troubleshooting, and references
 
 ## Deployment
 
-The repository is the source of truth. The bootstrap deploys repository-managed assets as user-local links after reviewing its planned changes:
+The repository is the source of truth. The bootstrap deploys repository-managed
+assets as user-local links after reviewing its planned changes:
 
 ```bash
 ./scripts/bootstrap.sh --dry-run --force
 ./scripts/bootstrap.sh --force
 ```
 
-Use `--install-autostart` only when intentionally deploying the tracked graphical-login autostart entry.
+Use `--install-autostart` only when intentionally deploying the tracked
+graphical-login autostart entry.
 
 The installed profile chooser is expected to resolve as:
 
@@ -117,7 +126,8 @@ The installed profile chooser is expected to resolve as:
 
 Selecting `sysadmin` in that chooser invokes `~/.local/bin/start-sysadmin-cold`.
 
-After running `./scripts/bootstrap.sh --force`, the repository also installs the managed command path:
+After running `./scripts/bootstrap.sh --force`, the repository also installs the
+managed command path:
 
 ```text
 ~/bin/ws-man
@@ -127,9 +137,11 @@ After running `./scripts/bootstrap.sh --force`, the repository also installs the
 ## Safety
 
 - Do not use live reroute to start missing applications or browser windows.
-- Do not add LibreWolf matchers or generic browser commands to the native reroute snapshot.
+- Do not add LibreWolf matchers or generic browser commands to the native
+  reroute snapshot.
 - Do not use `pkill librewolf` for selective browser cleanup.
-- Do not commit credentials, browser profiles, cookies, session stores, private URLs, or local runtime state.
+- Do not commit credentials, browser profiles, cookies, session stores, private
+  URLs, or local runtime state.
 - Review every deployment and Git diff before applying it.
 
 ## `ws-man` command library
@@ -150,11 +162,16 @@ ws-man sysadmin 4 --dry-run
 ws-man status
 ```
 
-`ws-man` currently supports full-profile synchronization and status only. Managed window cleanup and category-scoped synchronization will be added separately after their manifests and scoped profiles are repository-owned, reviewed, and bootstrap-managed.
+`ws-man` currently supports full-profile synchronization and status only. Managed
+window cleanup and category-scoped synchronization will be added separately after
+their manifests and scoped profiles are repository-owned, reviewed, and
+bootstrap-managed.
 
 ## COSMIC Compose
 
-[COSMIC Compose](docs/architecture/cosmic-compose.md) is the repository’s declarative category and workspace-membership model. Its initial metadata inventory is in [`cosmic-compose.yaml`](cosmic-compose.yaml).
+[COSMIC Compose](docs/architecture/cosmic-compose.md) is the repository's
+declarative category and workspace-membership model. Its initial metadata
+inventory is in [`cosmic-compose.yaml`](cosmic-compose.yaml).
 
 The initial category taxonomy is:
 
@@ -164,15 +181,28 @@ The initial category taxonomy is:
 - `git`
 - `media`
 
-COSMIC Compose currently documents WS3 application membership and provides read-only validation and planning:
+COSMIC Compose currently documents WS3 application membership and provides
+read-only validation and planning:
 
 ```bash
 scripts/bin/cosmic-compose validate
 scripts/bin/cosmic-compose plan sysadmin 3
 scripts/bin/cosmic-compose plan sysadmin 3 terminals
+scripts/bin/cosmic-compose plan sysadmin 3 browsers
 scripts/bin/cosmic-compose plan sysadmin 3 media
 ```
 
-The tool validates the manifest and prints declared membership only. It does not render scoped profiles, modify bootstrap behavior, change `ws-man`, alter autostart, modify COSMIC profile deployment, or launch or move windows.
+The tool validates the manifest and any explicitly declared scoped cold-start
+profiles, then prints declared membership only. Scoped profiles are verified as
+complete category-specific subsets of their full workspace profile; they are not
+rendered or deployed by this command. It does not modify bootstrap behavior,
+change `ws-man`, alter autostart, modify COSMIC profile deployment, or launch or
+move windows.
 
-Future category-scoped synchronization will use explicit, reviewed cold-start profiles and will preserve the browser-free native live-reroute boundary.
+WS3 currently has reviewed scoped cold-start definitions for `terminals` and
+`browsers`. Their presence does not yet enable
+`ws-man sysadmin 3 <category>`; category dispatch remains a separate
+bootstrap-managed change.
+
+Future category-scoped synchronization will use explicit, reviewed cold-start
+profiles and will preserve the browser-free native live-reroute boundary.

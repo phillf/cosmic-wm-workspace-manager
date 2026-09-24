@@ -22,7 +22,7 @@ Usage:
 
 Commands:
   validate
-      Validate cosmic-compose.yaml.
+      Validate cosmic-compose.yaml and any declared scoped profiles.
 
   plan sysadmin WORKSPACE [CATEGORY]
       Display declared COSMIC Compose membership for one sysadmin workspace.
@@ -72,21 +72,18 @@ def fail(message):
     raise SystemExit(2)
 
 
-def load_manifest(path):
+def load_yaml(path, description):
     try:
         raw = path.read_text(encoding="utf-8")
     except OSError as error:
-        fail(f"Cannot read manifest {path}: {error}")
+        fail(f"Cannot read {description} {path}: {error}")
 
     try:
-        manifest = yaml.safe_load(raw)
+        value = yaml.safe_load(raw)
     except yaml.YAMLError as error:
-        fail(f"Invalid YAML in {path}: {error}")
+        fail(f"Invalid YAML in {description} {path}: {error}")
 
-    if not isinstance(manifest, dict):
-        fail("Manifest root must be a mapping.")
-
-    return manifest
+    return value
 
 
 def require_mapping(value, description):
@@ -95,20 +92,232 @@ def require_mapping(value, description):
     return value
 
 
+def require_app_list(profile, description):
+    profile = require_mapping(profile, description)
+    apps = profile.get("apps")
+
+    if not isinstance(apps, list) or not apps:
+        fail(f"{description}.apps must be a non-empty list.")
+
+    for index, app in enumerate(apps):
+        if not isinstance(app, dict):
+            fail(f"{description}.apps[{index}] must be a mapping.")
+
+    return apps
+
+
+def canonical(value):
+    return yaml.safe_dump(
+        value,
+        sort_keys=True,
+        default_flow_style=False,
+        allow_unicode=True,
+    )
+
+
+def load_profile(path, description):
+    profile = load_yaml(path, description)
+    return require_mapping(profile, description)
+
+
+def validate_profile_apps(profile, description, workspace_number):
+    apps = require_app_list(profile, description)
+
+    for index, app in enumerate(apps):
+        workspace = app.get("workspace")
+        if workspace != workspace_number:
+            fail(
+                f"{description}.apps[{index}].workspace must be "
+                f"{workspace_number}."
+            )
+
+        command = app.get("command")
+        if not isinstance(command, str) or not command.strip():
+            fail(
+                f"{description}.apps[{index}].command must be a "
+                "non-empty string."
+            )
+
+        match = require_mapping(
+            app.get("match"),
+            f"{description}.apps[{index}].match",
+        )
+        if not match:
+            fail(f"{description}.apps[{index}].match must not be empty.")
+
+        for key, value in match.items():
+            if not isinstance(key, str) or not key.strip():
+                fail(
+                    f"{description}.apps[{index}].match has an invalid key."
+                )
+            if not isinstance(value, (str, int, float, bool)):
+                fail(
+                    f"{description}.apps[{index}].match.{key} must be "
+                    "a scalar value."
+                )
+
+    return apps
+
+
+def validate_scoped_profiles(
+    definition,
+    workspace,
+    workspace_number,
+    full_profile_path,
+    applications,
+):
+    scoped_profiles = definition.get("scoped_profiles")
+    if scoped_profiles is None:
+        return
+
+    scoped_profiles = require_mapping(
+        scoped_profiles,
+        f"Workspace {workspace!r}.scoped_profiles",
+    )
+    if not scoped_profiles:
+        fail(f"Workspace {workspace!r}.scoped_profiles must not be empty.")
+
+    full_profile = load_profile(
+        full_profile_path,
+        f"Full profile {full_profile_path}",
+    )
+
+    expected_full_name = f"sysadmin-ws{workspace_number}"
+    if full_profile.get("name") != expected_full_name:
+        fail(
+            f"Full profile {full_profile_path} must have name "
+            f"{expected_full_name!r}."
+        )
+
+    full_apps = validate_profile_apps(
+        full_profile,
+        f"Full profile {full_profile_path}",
+        workspace_number,
+    )
+    full_app_keys = {canonical(app) for app in full_apps}
+
+    declared_by_category = {
+        category: []
+        for category in REQUIRED_CATEGORIES
+    }
+
+    for name, application in applications.items():
+        declared_by_category[application["category"]].append(
+            (name, application)
+        )
+
+    for category, scoped_profile_path in scoped_profiles.items():
+        if not isinstance(category, str) or category not in REQUIRED_CATEGORY_SET:
+            fail(
+                f"Workspace {workspace!r}.scoped_profiles has unsupported "
+                f"category {category!r}."
+            )
+
+        if (
+            not isinstance(scoped_profile_path, str)
+            or not scoped_profile_path.strip()
+        ):
+            fail(
+                f"Workspace {workspace!r}.scoped_profiles.{category} "
+                "must be a non-empty profile path."
+            )
+
+        declared = declared_by_category[category]
+        if not declared:
+            fail(
+                f"Workspace {workspace!r}.scoped_profiles.{category} is "
+                "defined, but that category has no declared applications."
+            )
+
+        profile_path = manifest_path.parent / scoped_profile_path
+        if not profile_path.is_file():
+            fail(
+                f"Workspace {workspace!r}.scoped_profiles.{category} "
+                f"references missing profile: {scoped_profile_path}"
+            )
+
+        profile = load_profile(
+            profile_path,
+            f"Scoped profile {scoped_profile_path}",
+        )
+
+        expected_name = f"sysadmin-ws{workspace_number}-{category}"
+        if profile.get("name") != expected_name:
+            fail(
+                f"Scoped profile {scoped_profile_path} must have name "
+                f"{expected_name!r}."
+            )
+
+        scoped_apps = validate_profile_apps(
+            profile,
+            f"Scoped profile {scoped_profile_path}",
+            workspace_number,
+        )
+
+        scoped_app_keys = [canonical(app) for app in scoped_apps]
+        if len(scoped_app_keys) != len(set(scoped_app_keys)):
+            fail(
+                f"Scoped profile {scoped_profile_path} contains duplicate "
+                "application mappings."
+            )
+
+        represented_names = set()
+
+        for index, app in enumerate(scoped_apps):
+            app_key = canonical(app)
+            if app_key not in full_app_keys:
+                fail(
+                    f"Scoped profile {scoped_profile_path}.apps[{index}] "
+                    "is not an exact application mapping from the full "
+                    "workspace profile."
+                )
+
+            matches = [
+                name
+                for name, application in declared
+                if application["match"] == app["match"]
+            ]
+
+            if not matches:
+                fail(
+                    f"Scoped profile {scoped_profile_path}.apps[{index}] "
+                    f"does not belong to the {category!r} category."
+                )
+
+            if len(matches) > 1:
+                fail(
+                    f"Workspace {workspace!r} has ambiguous {category!r} "
+                    f"match metadata for scoped app index {index}."
+                )
+
+            represented_names.add(matches[0])
+
+        expected_names = {name for name, _ in declared}
+        if represented_names != expected_names:
+            missing = ", ".join(sorted(expected_names - represented_names))
+            fail(
+                f"Scoped profile {scoped_profile_path} does not cover every "
+                f"declared {category!r} application: {missing}"
+            )
+
+
 def validate_manifest(manifest):
     version = manifest.get("version")
     if version != 1:
         fail("version must be the integer 1.")
 
     categories = require_mapping(manifest.get("categories"), "categories")
-
     missing = REQUIRED_CATEGORY_SET - set(categories)
     unknown = set(categories) - REQUIRED_CATEGORY_SET
 
     if missing:
         fail(
             "Missing required categories: "
-            + ", ".join(category for category in REQUIRED_CATEGORIES if category in missing)
+            + ", ".join(
+                category
+                for category in REQUIRED_CATEGORIES
+                if category in missing
+            )
         )
 
     if unknown:
@@ -120,11 +329,15 @@ def validate_manifest(manifest):
             f"Category {category!r}",
         )
         description = definition.get("description")
+
         if not isinstance(description, str) or not description.strip():
             fail(f"Category {category!r} requires a non-empty description.")
 
     workspaces = require_mapping(manifest.get("workspaces"), "workspaces")
-    sysadmin = require_mapping(workspaces.get("sysadmin"), "workspaces.sysadmin")
+    sysadmin = require_mapping(
+        workspaces.get("sysadmin"),
+        "workspaces.sysadmin",
+    )
 
     if not sysadmin:
         fail("workspaces.sysadmin must define at least one workspace.")
@@ -136,7 +349,8 @@ def validate_manifest(manifest):
         workspace_number = int(workspace)
         if not 1 <= workspace_number <= 6:
             fail(
-                f"sysadmin workspace {workspace!r} is outside the supported range 1 through 6."
+                f"sysadmin workspace {workspace!r} is outside the supported "
+                "range 1 through 6."
             )
 
         definition = require_mapping(
@@ -188,15 +402,28 @@ def validate_manifest(manifest):
             for key, value in match.items():
                 if not isinstance(key, str) or not key.strip():
                     fail(f"Application {name!r}.match has an invalid key.")
+
                 if not isinstance(value, (str, int, float, bool)):
                     fail(
-                        f"Application {name!r}.match.{key} must be a scalar value."
+                        f"Application {name!r}.match.{key} must be "
+                        "a scalar value."
                     )
+
+        validate_scoped_profiles(
+            definition,
+            workspace,
+            workspace_number,
+            profile_path,
+            applications,
+        )
 
     return sysadmin
 
 
-manifest = load_manifest(manifest_path)
+manifest = load_yaml(manifest_path, "manifest")
+if not isinstance(manifest, dict):
+    fail("Manifest root must be a mapping.")
+
 sysadmin_workspaces = validate_manifest(manifest)
 
 if arguments == ["validate"]:
@@ -233,11 +460,13 @@ if category is not None:
         for name, application in applications.items()
         if application["category"] == category
     )
+
     if names:
         for name in names:
             print(f"  - {name}")
     else:
         print("  none")
+
     raise SystemExit(0)
 
 for declared_category in REQUIRED_CATEGORIES:
@@ -246,6 +475,7 @@ for declared_category in REQUIRED_CATEGORIES:
         for name, application in applications.items()
         if application["category"] == declared_category
     )
+
     if names:
         print(f"  {declared_category}:")
         for name in names:

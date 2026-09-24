@@ -1,0 +1,9 @@
+name: sysadmin-ws3-browsers
+description: CT Sysadmin workspace 3 — monitoring browsers
+monitors: []
+apps:
+- command: /usr/bin/librewolf --new-window https://creativetech.grafana.net/login/
+  workspace: 3
+  match:
+    class: librewolf
+    title: Grafana
