@@ -1,0 +1,28 @@
+version: 1
+
+categories:
+  terminals:
+    description: Interactive terminals and command-line work surfaces
+  browsers:
+    description: Web browsers and browser-hosted administration tools
+  communications:
+    description: Messaging, mail, calling, and collaboration clients
+  git:
+    description: Version-control tools and dedicated Git work surfaces
+  media:
+    description: Audio and video playback applications
+
+workspaces:
+  sysadmin:
+    "3":
+      profile: profiles/sysadmin-ws3.yaml
+      applications:
+        workspace-terminal:
+          category: terminals
+          match:
+            class: me.creativetech.terminal.workspace3
+        grafana:
+          category: browsers
+          match:
+            class: librewolf
+            title: Grafana
