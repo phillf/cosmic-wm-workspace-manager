@@ -164,6 +164,15 @@ The initial category taxonomy is:
 - `git`
 - `media`
 
-COSMIC Compose currently documents WS3 application membership only. It does not yet generate scoped profiles, modify bootstrap behavior, change `ws-man`, alter autostart, or modify COSMIC profile deployment.
+COSMIC Compose currently documents WS3 application membership and provides read-only validation and planning:
+
+```bash
+scripts/bin/cosmic-compose validate
+scripts/bin/cosmic-compose plan sysadmin 3
+scripts/bin/cosmic-compose plan sysadmin 3 terminals
+scripts/bin/cosmic-compose plan sysadmin 3 media
+```
+
+The tool validates the manifest and prints declared membership only. It does not render scoped profiles, modify bootstrap behavior, change `ws-man`, alter autostart, modify COSMIC profile deployment, or launch or move windows.
 
 Future category-scoped synchronization will use explicit, reviewed cold-start profiles and will preserve the browser-free native live-reroute boundary.

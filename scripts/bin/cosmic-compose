@@ -1,0 +1,283 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+readonly SCRIPT_NAME="${0##*/}"
+readonly REPO_DIR="$(
+  cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." &&
+    pwd -P
+)"
+readonly COMPOSE_FILE="$REPO_DIR/cosmic-compose.yaml"
+
+fail() {
+  printf 'ERROR: %s\n' "$*" >&2
+  exit 2
+}
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  cosmic-compose validate
+  cosmic-compose plan sysadmin WORKSPACE [CATEGORY]
+  cosmic-compose help
+
+Commands:
+  validate
+      Validate cosmic-compose.yaml.
+
+  plan sysadmin WORKSPACE [CATEGORY]
+      Display declared COSMIC Compose membership for one sysadmin workspace.
+      CATEGORY is optional. Supported values are:
+      terminals, browsers, communications, git, media.
+      When CATEGORY is omitted, all categories are displayed.
+
+  help
+      Show this help text.
+
+Safety:
+  This command is read-only. It does not render profiles, invoke cosmic-wm,
+  launch or move windows, modify bootstrap state, or alter Git state.
+USAGE
+}
+
+require_dependencies() {
+  command -v python3 >/dev/null 2>&1 ||
+    fail 'python3 is required but was not found on PATH.'
+
+  python3 -c 'import yaml' >/dev/null 2>&1 ||
+    fail 'PyYAML is required for cosmic-compose.'
+}
+
+run_python() {
+  python3 - "$COMPOSE_FILE" "$@" <<'PYTHON'
+import sys
+from pathlib import Path
+
+import yaml
+
+manifest_path = Path(sys.argv[1])
+arguments = sys.argv[2:]
+
+REQUIRED_CATEGORIES = (
+    "terminals",
+    "browsers",
+    "communications",
+    "git",
+    "media",
+)
+REQUIRED_CATEGORY_SET = set(REQUIRED_CATEGORIES)
+
+
+def fail(message):
+    print(f"ERROR: {message}", file=sys.stderr)
+    raise SystemExit(2)
+
+
+def load_manifest(path):
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as error:
+        fail(f"Cannot read manifest {path}: {error}")
+
+    try:
+        manifest = yaml.safe_load(raw)
+    except yaml.YAMLError as error:
+        fail(f"Invalid YAML in {path}: {error}")
+
+    if not isinstance(manifest, dict):
+        fail("Manifest root must be a mapping.")
+
+    return manifest
+
+
+def require_mapping(value, description):
+    if not isinstance(value, dict):
+        fail(f"{description} must be a mapping.")
+    return value
+
+
+def validate_manifest(manifest):
+    version = manifest.get("version")
+    if version != 1:
+        fail("version must be the integer 1.")
+
+    categories = require_mapping(manifest.get("categories"), "categories")
+
+    missing = REQUIRED_CATEGORY_SET - set(categories)
+    unknown = set(categories) - REQUIRED_CATEGORY_SET
+
+    if missing:
+        fail(
+            "Missing required categories: "
+            + ", ".join(category for category in REQUIRED_CATEGORIES if category in missing)
+        )
+
+    if unknown:
+        fail("Unsupported categories: " + ", ".join(sorted(unknown)))
+
+    for category in REQUIRED_CATEGORIES:
+        definition = require_mapping(
+            categories[category],
+            f"Category {category!r}",
+        )
+        description = definition.get("description")
+        if not isinstance(description, str) or not description.strip():
+            fail(f"Category {category!r} requires a non-empty description.")
+
+    workspaces = require_mapping(manifest.get("workspaces"), "workspaces")
+    sysadmin = require_mapping(workspaces.get("sysadmin"), "workspaces.sysadmin")
+
+    if not sysadmin:
+        fail("workspaces.sysadmin must define at least one workspace.")
+
+    for workspace, definition in sysadmin.items():
+        if not isinstance(workspace, str) or not workspace.isdigit():
+            fail("sysadmin workspace keys must be numeric strings.")
+
+        workspace_number = int(workspace)
+        if not 1 <= workspace_number <= 6:
+            fail(
+                f"sysadmin workspace {workspace!r} is outside the supported range 1 through 6."
+            )
+
+        definition = require_mapping(
+            definition,
+            f"Workspace {workspace!r}",
+        )
+
+        profile = definition.get("profile")
+        if not isinstance(profile, str) or not profile.strip():
+            fail(f"Workspace {workspace!r} requires a non-empty profile path.")
+
+        profile_path = manifest_path.parent / profile
+        if not profile_path.is_file():
+            fail(
+                f"Workspace {workspace!r} references missing profile: {profile}"
+            )
+
+        applications = require_mapping(
+            definition.get("applications"),
+            f"Workspace {workspace!r}.applications",
+        )
+
+        if not applications:
+            fail(f"Workspace {workspace!r} must define at least one application.")
+
+        for name, application in applications.items():
+            if not isinstance(name, str) or not name.strip():
+                fail(f"Workspace {workspace!r} has an invalid application name.")
+
+            application = require_mapping(
+                application,
+                f"Application {name!r}",
+            )
+
+            category = application.get("category")
+            if category not in REQUIRED_CATEGORY_SET:
+                fail(
+                    f"Application {name!r} has unsupported category {category!r}."
+                )
+
+            match = require_mapping(
+                application.get("match"),
+                f"Application {name!r}.match",
+            )
+
+            if not match:
+                fail(f"Application {name!r}.match must not be empty.")
+
+            for key, value in match.items():
+                if not isinstance(key, str) or not key.strip():
+                    fail(f"Application {name!r}.match has an invalid key.")
+                if not isinstance(value, (str, int, float, bool)):
+                    fail(
+                        f"Application {name!r}.match.{key} must be a scalar value."
+                    )
+
+    return sysadmin
+
+
+manifest = load_manifest(manifest_path)
+sysadmin_workspaces = validate_manifest(manifest)
+
+if arguments == ["validate"]:
+    print(f"PASS: validated {manifest_path.name}.")
+    raise SystemExit(0)
+
+if len(arguments) not in {3, 4} or arguments[:2] != ["plan", "sysadmin"]:
+    fail("Invalid command. Run cosmic-compose help.")
+
+workspace = arguments[2]
+category = arguments[3] if len(arguments) == 4 else None
+
+if workspace not in sysadmin_workspaces:
+    fail(f"No sysadmin workspace definition exists for workspace {workspace}.")
+
+if category is not None and category not in REQUIRED_CATEGORY_SET:
+    fail(
+        "Unsupported category "
+        f"{category!r}. Supported categories: "
+        + ", ".join(REQUIRED_CATEGORIES)
+        + "."
+    )
+
+workspace_definition = sysadmin_workspaces[workspace]
+applications = workspace_definition["applications"]
+
+print(f"Profile: {workspace_definition['profile']}")
+print(f"Scope: {category or 'all'}")
+print("Applications:")
+
+if category is not None:
+    names = sorted(
+        name
+        for name, application in applications.items()
+        if application["category"] == category
+    )
+    if names:
+        for name in names:
+            print(f"  - {name}")
+    else:
+        print("  none")
+    raise SystemExit(0)
+
+for declared_category in REQUIRED_CATEGORIES:
+    names = sorted(
+        name
+        for name, application in applications.items()
+        if application["category"] == declared_category
+    )
+    if names:
+        print(f"  {declared_category}:")
+        for name in names:
+            print(f"    - {name}")
+    else:
+        print(f"  {declared_category}: none")
+PYTHON
+}
+
+main() {
+  case "${1:-}" in
+    validate)
+      [[ $# -eq 1 ]] || fail 'Usage: cosmic-compose validate'
+      require_dependencies
+      run_python validate
+      ;;
+    plan)
+      require_dependencies
+      run_python "$@"
+      ;;
+    help|-h|--help)
+      [[ $# -eq 1 ]] || fail 'Usage: cosmic-compose help'
+      usage
+      ;;
+    '')
+      usage >&2
+      exit 2
+      ;;
+    *)
+      fail "Unknown command: $1"
+      ;;
+  esac
+}
+
+main "$@"

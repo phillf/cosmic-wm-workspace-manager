@@ -1,8 +1,8 @@
 # COSMIC Compose
 
-COSMIC Compose is the declarative category and membership layer for the COSMIC Workspace Manager. It records which named applications belong to operational categories and which existing workspace profile contains them.
+COSMIC Compose is the declarative category and membership layer for the CT COSMIC Workspace Manager. It records which named applications belong to operational categories and which existing workspace profile contains them.
 
-It is configuration metadata, not a second window manager. `cosmic-wm` remains responsible for launching, matching, and placing windows.
+It is configuration metadata and read-only planning tooling, not a second window manager. `cosmic-wm` remains responsible for launching, matching, and placing windows.
 
 ## Purpose
 
@@ -63,9 +63,53 @@ COSMIC Compose must preserve the established separation of responsibilities:
 |---|---|---|
 | Start intended workspace applications | Cold-start profiles | May launch their profile-defined LibreWolf windows |
 | Correct an already-open supported native window’s workspace | Native-only live reroute snapshot | Must not match, launch, or move LibreWolf windows |
-| Classify applications for future scoped synchronization | COSMIC Compose | Metadata only until scoped profiles are explicitly rendered and reviewed |
+| Classify applications and display declared scoped membership | COSMIC Compose | Reads manifest metadata only; does not touch windows |
 
 A future category-specific command must select an explicit, repository-owned scoped **cold-start** profile. It must never add category behavior to the native live-reroute snapshot.
+
+## Current read-only tooling
+
+The repository provides a validation and planning command:
+
+```bash
+scripts/bin/cosmic-compose validate
+scripts/bin/cosmic-compose plan sysadmin 3
+scripts/bin/cosmic-compose plan sysadmin 3 terminals
+scripts/bin/cosmic-compose plan sysadmin 3 browsers
+scripts/bin/cosmic-compose plan sysadmin 3 media
+```
+
+`validate` checks:
+
+- Manifest `version: 1`.
+- The exact supported category set.
+- Non-empty category descriptions.
+- The supported WS1–WS6 sysadmin workspace range.
+- Referenced profile paths.
+- Application category membership.
+- Non-empty scalar `match` metadata.
+
+`plan` prints declared application membership for the requested workspace and optional category:
+
+```text
+Profile: profiles/sysadmin-ws3.yaml
+Scope: terminals
+Applications:
+  - workspace-terminal
+```
+
+A valid category with no declared applications is reported as `none`. An unsupported category or undefined workspace fails with an explicit error and exit status `2`.
+
+The tool is intentionally read-only. It does not:
+
+- Render or modify profiles.
+- Invoke `cosmic-wm`.
+- Launch, move, close, match, or reroute windows.
+- Modify bootstrap state or autostart.
+- Modify Git state.
+- Change `ws-man`.
+
+`cosmic-compose` is currently invoked from `scripts/bin/`; it is not yet installed as a `~/bin` compatibility entrypoint.
 
 ## Future command model
 
@@ -90,7 +134,7 @@ A category command is not enabled merely because a category exists in the Compos
 ## Delivery sequence
 
 1. Define category membership in `cosmic-compose.yaml`.
-2. Add a read-only validation and planning tool.
+2. Validate and plan membership with `scripts/bin/cosmic-compose`.
 3. Create reviewed scoped cold-start profiles.
 4. Extend `ws-man` to dispatch only to installed scoped profiles.
 5. Expand category membership across the remaining managed workspaces.
