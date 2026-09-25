@@ -5,21 +5,24 @@
 Use live reroute only to correct the workspace assignment of already-open,
 supported native application windows.
 
-The approved snapshot is browser-free. It must not be used to launch LibreWolf
-or recreate missing browser windows.
+Live reroute is independent of cold-start workspace profiles. It does not launch
+missing applications, recreate a desktop session, or restore browser state.
+
+The approved snapshot is browser-free. It must not be used to launch LibreWolf,
+create missing browser windows, match browser windows, or move browser windows.
 
 ## Approved snapshot
 
-The repository filename remains:
+The repository snapshot filename remains:
 
 ```text
 sessions/sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24.yaml
 ```
 
-Its YAML name is:
+Bootstrap deploys that approved snapshot as the installed session:
 
 ```text
-sysadmin-live-native-reroute
+sysadmin-live-reroute
 ```
 
 It contains exactly ten native rules:
@@ -46,11 +49,41 @@ WS7 and all LibreWolf windows are excluded.
 
 ## Run
 
+Use the preferred operator command:
+
+```bash
+ws-man reroute
+```
+
+The default timeout is 30 seconds. Override it for one operation when needed:
+
+```bash
+ws-man reroute --timeout 45
+```
+
+Enable COSMIC debug output:
+
+```bash
+ws-man reroute --debug
+```
+
+Preview the resolved operation without moving windows:
+
+```bash
+ws-man reroute --timeout 45 --debug --dry-run
+```
+
+`ws-man reroute` always uses the approved installed `sysadmin-live-reroute`
+session. It does not accept a workspace, profile, category, baseline, or
+arbitrary session argument.
+
+The equivalent lower-level command is:
+
 ```bash
 cosmic-wm restore \
   --timeout 30 \
   --debug \
-  sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
+  sysadmin-live-reroute
 ```
 
 ## Success criteria
@@ -58,13 +91,14 @@ cosmic-wm restore \
 - Matching native windows are routed to WS1 through WS6.
 - No timeout occurs.
 - No browser process is spawned.
+- No browser window is matched or moved.
 - WS7 windows remain outside the operation.
 - The output ends with the successful organization message.
 
-If an expected native application is missing, stop rather than relying on
-live reroute to start it. Use cold start or an intentional manual launch for
-normal managed startup, then use native reroute only if an already-open supported
-window needs placement correction.
+If an expected native application is missing, stop rather than relying on live
+reroute to start it. Use cold start or an intentional manual launch for normal
+managed startup, then use native reroute only if an already-open supported window
+needs placement correction.
 
 ## Limitations
 

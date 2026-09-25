@@ -29,22 +29,53 @@ workspace-profile --profile sysadmin
 
 ## Native live reroute
 
-Use only when a supported native application window is already open and needs
-to be returned to its resident workspace:
+Use live reroute only when a supported native application window is already open
+and needs to be returned to its resident workspace.
+
+Preferred command:
+
+```bash
+ws-man reroute
+```
+
+The default timeout is 30 seconds. Override it for one operation when needed:
+
+```bash
+ws-man reroute --timeout 45
+```
+
+Enable COSMIC debug output:
+
+```bash
+ws-man reroute --debug
+```
+
+Preview the resolved command without moving windows:
+
+```bash
+ws-man reroute --timeout 45 --debug --dry-run
+```
+
+`ws-man reroute` is independent of profiles and always uses only the approved
+installed `sysadmin-live-reroute` session. It does not accept a workspace,
+profile, category, baseline, or arbitrary session argument.
+
+The equivalent lower-level command is:
 
 ```bash
 cosmic-wm restore \
   --timeout 30 \
   --debug \
-  sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
+  sysadmin-live-reroute
 ```
 
-The YAML name is `sysadmin-live-native-reroute`. Its ten supported native rules
-are Spotify; the WS2, WS3, and WS4 dedicated terminals; Visual Studio Code; and
-Discord, Slack, Mattermost, Signal, and GitKraken.
+The approved snapshot has ten supported native rules: Spotify; the WS2, WS3, and
+WS4 dedicated terminals; Visual Studio Code; and Discord, Slack, Mattermost,
+Signal, and GitKraken.
 
 It has no browser rules. Do not use it to start missing applications, launch
-LibreWolf, move browser windows, or manage WS7.
+LibreWolf, create, match, move, close, or restore browser windows, restore browser
+state, restore geometry or tile order, or manage WS7.
 
 ## Status
 

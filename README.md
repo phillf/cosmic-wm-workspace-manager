@@ -32,22 +32,52 @@ browser windows, need to be launched.
 
 ### Correct an already-open native window
 
+Use the independent `ws-man reroute` operation to route already-open supported
+native windows through the approved live-reroute session:
+
 ```bash
-cosmic-wm restore \
-  --timeout 30 \
-  --debug \
-  sysadmin-managed-reroute-v1-ws1-ws6-no-stale-ws1-browser-2026-08-24
+ws-man reroute
 ```
 
-The current approved YAML is named `sysadmin-live-native-reroute` and contains
-exactly ten native rules:
+The reroute default timeout is 30 seconds. Override it for one operation when
+needed:
+
+```bash
+ws-man reroute --timeout 45
+```
+
+Enable COSMIC debug output:
+
+```bash
+ws-man reroute --debug
+```
+
+Preview the resolved command without moving windows:
+
+```bash
+ws-man reroute --timeout 45 --debug --dry-run
+```
+
+`ws-man reroute` is independent of workspace profiles. It uses only the approved
+installed `sysadmin-live-reroute` session, which contains exactly ten native rules:
 
 - WS1: Spotify
 - WS2–WS4: dedicated workspace terminals
 - WS5: Visual Studio Code
 - WS6: Discord, Slack, Mattermost, Signal, and GitKraken
 
-It excludes all browser windows and WS7.
+It excludes all browser windows and WS7. It does not launch missing applications,
+create browser windows, restore browser state, or restore tile order, geometry,
+sizes, split ratios, stacks, or tab groups.
+
+The equivalent lower-level command is:
+
+```bash
+cosmic-wm restore \
+  --timeout 30 \
+  --debug \
+  sysadmin-live-reroute
+```
 
 ### Refresh one workspace profile
 
@@ -151,21 +181,27 @@ managed command path:
 ws-man sysadmin 1
 ws-man sysadmin 6
 
-# The default timeout is 180 seconds; override it when needed.
+# The default profile timeout is 180 seconds; override it when needed.
 ws-man sysadmin 3 --timeout 45
 ws-man sysadmin 6 --timeout 300
 
-# Preview a command without launching applications or moving windows.
+# Preview a profile refresh without launching applications or moving windows.
 ws-man sysadmin 4 --dry-run
+
+# Route already-open supported native windows with a 30-second default.
+ws-man reroute
+
+# Preview a reroute without moving windows.
+ws-man reroute --timeout 45 --debug --dry-run
 
 # Show current COSMIC application-to-workspace assignments.
 ws-man status
 ```
 
-`ws-man` currently supports full-profile synchronization and status only. Managed
-window cleanup and category-scoped synchronization will be added separately after
-their manifests and scoped profiles are repository-owned, reviewed, and
-bootstrap-managed.
+`ws-man` supports full-profile synchronization, approved native live reroute,
+and status. Managed window cleanup and category-scoped synchronization will be
+added separately after their manifests and scoped profiles are repository-owned,
+reviewed, and bootstrap-managed.
 
 ## COSMIC Compose
 
