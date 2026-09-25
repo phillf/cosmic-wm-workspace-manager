@@ -6,6 +6,9 @@ DEFAULT_PROFILE_FAMILY='sysadmin'
 PROFILE_WORKSPACE_MIN=1
 PROFILE_WORKSPACE_MAX=6
 
+REROUTE_DEFAULT_TIMEOUT=30
+DEFAULT_REROUTE_SESSION='sysadmin-live-reroute'
+
 fail() {
   printf 'ERROR: %s\n' "$*" >&2
   exit 2
@@ -15,6 +18,7 @@ usage() {
   cat <<'USAGE'
 Usage:
   ws-man sysadmin NUMBER [--timeout SECONDS] [--dry-run]
+  ws-man reroute [--timeout SECONDS] [--debug] [--dry-run]
   ws-man status
   ws-man help
 
@@ -30,6 +34,22 @@ Commands:
           Print the resolved cosmic-wm command without launching applications or
           moving windows.
 
+  reroute
+      Route already-open supported native windows using the approved WS1–WS6
+      live-reroute snapshot. It does not launch applications; create, match,
+      move, close, or restore LibreWolf/browser windows; restore browser state;
+      restore tile ordering, geometry, sizes, split ratios, stacks; or affect WS7.
+      The default timeout is 30 seconds.
+
+      --timeout SECONDS
+          Override the 30-second default with a positive integer or decimal.
+
+      --debug
+          Enable cosmic-wm debug output.
+
+      --dry-run
+          Print the resolved cosmic-wm command without moving windows.
+
   status
       Display active COSMIC applications and their workspace assignments.
 
@@ -37,6 +57,9 @@ Examples:
   ws-man sysadmin 1
   ws-man sysadmin 6 --timeout 300
   ws-man sysadmin 4 --dry-run
+  ws-man reroute
+  ws-man reroute --timeout 45 --debug
+  ws-man reroute --dry-run
   ws-man status
 USAGE
 }
@@ -107,6 +130,60 @@ run_profile() {
   exec cosmic-wm start "$profile_name" --timeout "$timeout"
 }
 
+run_reroute() {
+  local timeout="$REROUTE_DEFAULT_TIMEOUT"
+  local debug=0
+  local dry_run=0
+
+  while (($#)); do
+    case "$1" in
+      --timeout)
+        (($# >= 2)) ||
+          fail '--timeout requires a positive number of seconds.'
+        timeout="$2"
+        shift 2
+        ;;
+      --debug)
+        debug=1
+        shift
+        ;;
+      --dry-run)
+        dry_run=1
+        shift
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      *)
+        fail "Unknown reroute option: $1"
+        ;;
+    esac
+  done
+
+  is_positive_number "$timeout" ||
+    fail "--timeout must be a positive number; got: $timeout"
+
+  command -v cosmic-wm >/dev/null 2>&1 ||
+    fail 'cosmic-wm is not available on PATH.'
+
+  local -a command=(cosmic-wm restore --timeout "$timeout")
+  if ((debug)); then
+    command+=(--debug)
+  fi
+  command+=("$DEFAULT_REROUTE_SESSION")
+
+  if ((dry_run)); then
+    printf 'DRY RUN:'
+    printf ' %q' "${command[@]}"
+    printf '\n'
+    return 0
+  fi
+
+  printf 'Running approved native live reroute with timeout %ss.\n' "$timeout"
+  exec "${command[@]}"
+}
+
 main() {
   (($# >= 1)) || {
     usage
@@ -118,6 +195,9 @@ main() {
       (($# >= 2)) ||
         fail 'Usage: ws-man sysadmin NUMBER [--timeout SECONDS] [--dry-run]'
       run_profile "$1" "$2" "${@:3}"
+      ;;
+    reroute)
+      run_reroute "${@:2}"
       ;;
     status)
       (($# == 1)) || fail 'Usage: ws-man status'
