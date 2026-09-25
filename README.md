@@ -1,5 +1,10 @@
-# CT COSMIC Workspace Manager
+# COSMIC Workspace Steward
 
+
+
+A YAML-driven workspace profile and session stewardship tool for COSMIC Desktop. The `ws-man` command delegates native workspace and window actions to `cosmic-wm`.
+
+> Unofficial community tooling. COSMIC Workspace Steward is not affiliated with, endorsed by, or maintained by System76 or the COSMIC Desktop project.
 Repository-managed configuration, launch assets, and operating documentation for
 the CT COSMIC workstation workspace arrangement.
 
