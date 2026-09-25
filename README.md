@@ -206,9 +206,9 @@ not install that profile, invoke `cosmic-wm`, or enable category dispatch in
 `ws-man`.
 
 WS3 currently has reviewed scoped cold-start definitions for `terminals` and
-`browsers`. Their presence does not yet enable
-`ws-man sysadmin 3 <category>`; category dispatch remains a separate
-bootstrap-managed change.
+`browsers`. Bootstrap is configured to install those two reviewed WS3 scoped
+profiles as user-local symlinks. Their presence does not yet enable
+`ws-man sysadmin 3 <category>`; category dispatch remains a separate change.
 
 Future category-scoped synchronization will use explicit, reviewed cold-start
 profiles and will preserve the browser-free native live-reroute boundary.

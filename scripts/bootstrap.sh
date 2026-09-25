@@ -42,6 +42,7 @@ Options:
 
 Behavior:
   - Links sysadmin-ws1.yaml through sysadmin-ws6.yaml into the live profile dir.
+  - Links the declared WS3 terminal and browser scoped cold-start profiles.
   - Links only the approved 17-window reroute snapshot as sysadmin-live-reroute.
   - Quarantines known unsafe/obsolete live snapshots when --force is supplied.
   - Links active launch scripts and desktop entries.
@@ -167,6 +168,14 @@ for workspace in 1 2 3 4 5 6; do
     "$repo_dir/profiles/sysadmin-ws${workspace}.yaml" \
     "$profile_dir/sysadmin-ws${workspace}.yaml"
 done
+
+link_file \
+  "$repo_dir/profiles/sysadmin-ws3-terminals.yaml" \
+  "$profile_dir/sysadmin-ws3-terminals.yaml"
+
+link_file \
+  "$repo_dir/profiles/sysadmin-ws3-browsers.yaml" \
+  "$profile_dir/sysadmin-ws3-browsers.yaml"
 
 link_file \
   "$approved_snapshot_source" \

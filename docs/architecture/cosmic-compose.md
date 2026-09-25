@@ -88,6 +88,11 @@ No scoped profile is declared for `communications`, `git`, or `media`, because W
 currently has no applications in those categories. A category's existence does not
 make it deployable as a scoped profile.
 
+Bootstrap is configured to install the two reviewed WS3 scoped profiles as
+user-local symlinks in the COSMIC profile directory. Bootstrap does not infer
+additional profile filenames from the Compose manifest; expanding scoped
+deployment requires an explicit, reviewed bootstrap change.
+
 ## Ownership boundaries
 
 COSMIC Compose must preserve the established separation of responsibilities:
