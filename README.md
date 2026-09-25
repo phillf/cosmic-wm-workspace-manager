@@ -190,6 +190,8 @@ scripts/bin/cosmic-compose plan sysadmin 3
 scripts/bin/cosmic-compose plan sysadmin 3 terminals
 scripts/bin/cosmic-compose plan sysadmin 3 browsers
 scripts/bin/cosmic-compose plan sysadmin 3 media
+scripts/bin/cosmic-compose profile sysadmin 3 terminals
+scripts/bin/cosmic-compose profile sysadmin 3 browsers
 ```
 
 The tool validates the manifest and any explicitly declared scoped cold-start
@@ -198,6 +200,10 @@ complete category-specific subsets of their full workspace profile; they are not
 rendered or deployed by this command. It does not modify bootstrap behavior,
 change `ws-man`, alter autostart, modify COSMIC profile deployment, or launch or
 move windows.
+
+`cosmic-compose profile` resolves a declared scoped profile path only. It does
+not install that profile, invoke `cosmic-wm`, or enable category dispatch in
+`ws-man`.
 
 WS3 currently has reviewed scoped cold-start definitions for `terminals` and
 `browsers`. Their presence does not yet enable

@@ -112,6 +112,8 @@ scripts/bin/cosmic-compose plan sysadmin 3
 scripts/bin/cosmic-compose plan sysadmin 3 terminals
 scripts/bin/cosmic-compose plan sysadmin 3 browsers
 scripts/bin/cosmic-compose plan sysadmin 3 media
+scripts/bin/cosmic-compose profile sysadmin 3 terminals
+scripts/bin/cosmic-compose profile sysadmin 3 browsers
 ```
 
 `validate` checks:
@@ -142,6 +144,18 @@ Applications:
 A valid category with no declared applications is reported as `none`. An
 unsupported category or undefined workspace fails with an explicit error and exit
 status `2`.
+
+`profile` resolves a declared scoped cold-start profile path from the Compose
+manifest. It prints only the repository-relative path and performs no deployment
+or launch action:
+
+```text
+profiles/sysadmin-ws3-terminals.yaml
+```
+
+If the workspace/category pair has no declared scoped profile, `profile` fails
+with exit status `2`. It does not infer a filename or fall back to the full
+workspace profile.
 
 The tool is intentionally read-only. It does not:
 

@@ -18,6 +18,7 @@ usage() {
 Usage:
   cosmic-compose validate
   cosmic-compose plan sysadmin WORKSPACE [CATEGORY]
+  cosmic-compose profile sysadmin WORKSPACE CATEGORY
   cosmic-compose help
 
 Commands:
@@ -29,6 +30,11 @@ Commands:
       CATEGORY is optional. Supported values are:
       terminals, browsers, communications, git, media.
       When CATEGORY is omitted, all categories are displayed.
+
+  profile sysadmin WORKSPACE CATEGORY
+      Print the repository-relative scoped cold-start profile path declared for
+      one sysadmin workspace/category pair. Fails if no scoped profile is
+      declared for that category.
 
   help
       Show this help text.
@@ -431,6 +437,46 @@ if arguments == ["validate"]:
     raise SystemExit(0)
 
 if len(arguments) not in {3, 4} or arguments[:2] != ["plan", "sysadmin"]:
+    if (
+        len(arguments) == 4
+        and arguments[:2] == ["profile", "sysadmin"]
+    ):
+        workspace = arguments[2]
+        category = arguments[3]
+
+        if workspace not in sysadmin_workspaces:
+            fail(
+                f"No sysadmin workspace definition exists for workspace "
+                f"{workspace}."
+            )
+
+        if category not in REQUIRED_CATEGORY_SET:
+            fail(
+                "Unsupported category "
+                f"{category!r}. Supported categories: "
+                + ", ".join(REQUIRED_CATEGORIES)
+                + "."
+            )
+
+        scoped_profiles = sysadmin_workspaces[workspace].get(
+            "scoped_profiles",
+            {},
+        )
+        scoped_profiles = require_mapping(
+            scoped_profiles,
+            f"Workspace {workspace!r}.scoped_profiles",
+        )
+
+        scoped_profile = scoped_profiles.get(category)
+        if scoped_profile is None:
+            fail(
+                f"No scoped profile is declared for sysadmin workspace "
+                f"{workspace} category {category!r}."
+            )
+
+        print(scoped_profile)
+        raise SystemExit(0)
+
     fail("Invalid command. Run cosmic-compose help.")
 
 workspace = arguments[2]
@@ -493,6 +539,12 @@ main() {
       run_python validate
       ;;
     plan)
+      require_dependencies
+      run_python "$@"
+      ;;
+    profile)
+      [[ $# -eq 4 ]] ||
+        fail 'Usage: cosmic-compose profile sysadmin WORKSPACE CATEGORY'
       require_dependencies
       run_python "$@"
       ;;
