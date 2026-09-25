@@ -1,5 +1,16 @@
 # COSMIC Workspace Steward
 
+## Development disclosure
+
+This project was developed with substantial assistance from AI coding tools
+("vibe coding"). AI-generated changes are reviewed and validated by the
+maintainer, but this software is provided as-is and may contain defects.
+
+Review scripts and configuration before use, test changes in a non-production
+desktop session where practical, and keep backups of workspace-related
+configuration. Do not rely on this project as the sole recovery mechanism for
+critical desktop state.
+
 A YAML-driven workspace profile and session stewardship project for COSMIC Desktop.
 The current implementation is a CT-specific reference deployment operated through
 `ws-man` and backed by `cosmic-wm`.
