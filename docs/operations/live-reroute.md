@@ -1,5 +1,11 @@
 # Live Reroute
 
+> **Current CT reference deployment:** This procedure documents the currently
+> implemented CT-specific `ws-man reroute` workflow. Its `sysadmin-live-reroute`
+> session, WS1–WS6 scope, browser exclusion, and WS7 protection are deployment
+> policy, not generic COSMIC Workspace Steward behavior.
+
+
 ## Purpose
 
 Use live reroute only to correct the workspace assignment of already-open,

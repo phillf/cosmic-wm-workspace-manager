@@ -1,12 +1,31 @@
 # COSMIC Workspace Steward
 
+A YAML-driven workspace profile and session stewardship project for COSMIC Desktop.
+The current implementation is a CT-specific reference deployment operated through
+`ws-man` and backed by `cosmic-wm`.
 
+> Unofficial community tooling. COSMIC Workspace Steward is not affiliated with,
+> endorsed by, or maintained by System76 or the COSMIC Desktop project.
 
-A YAML-driven workspace profile and session stewardship tool for COSMIC Desktop. The `ws-man` command delegates native workspace and window actions to `cosmic-wm`.
+## Current implementation
 
-> Unofficial community tooling. COSMIC Workspace Steward is not affiliated with, endorsed by, or maintained by System76 or the COSMIC Desktop project.
-Repository-managed configuration, launch assets, and operating documentation for
-the CT COSMIC workstation workspace arrangement.
+The current reference deployment provides:
+
+- `ws-man sysadmin NUMBER` for installed CT sysadmin workspace profiles.
+- `ws-man reroute` for the approved native-only CT live-reroute session.
+- `ws-man status` for inspecting active COSMIC application and workspace state.
+- A bootstrap script that deploys declared CT profiles, sessions, wrappers, and
+  optional autostart assets as symlinks.
+
+It does not yet provide generic profile/session discovery, arbitrary profile or
+session selection, import, promotion, migration, package installation, or a
+general-purpose interactive installer.
+
+## Generic evolution
+
+The proposed generic architecture is documented in
+[`docs/design/cosmic-workspace-steward-design.md`](docs/design/cosmic-workspace-steward-design.md).
+It is a design proposal and is not implemented yet.
 
 ## Scope
 

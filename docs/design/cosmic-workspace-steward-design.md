@@ -4,11 +4,19 @@
 
 **Proposal / pre-implementation design.**
 
-COSMIC Workspace Steward is a YAML-driven workspace profile and session stewardship tool for COSMIC Desktop. Its operator-facing command is `ws-man`.
+This document describes the target generic architecture. It does not describe the
+current `ws-man` implementation as a general-purpose tool. The currently shipped
+wrapper and bootstrap remain a CT-specific reference deployment with fixed
+`sysadmin` profiles and the approved `sysadmin-live-reroute` session. See the
+operational and canonical-command documentation for current behavior.
 
-It is not a window manager or compositor. It delegates native workspace and window operations to the installed `cosmic-wm` command.
+COSMIC Workspace Steward is a YAML-driven workspace profile and session stewardship
+project for COSMIC Desktop. Its operator-facing command is `ws-man`. It is not a
+window manager or compositor; it delegates native workspace and window operations
+to the installed `cosmic-wm` command.
 
-> Unofficial community tooling. COSMIC Workspace Steward is not affiliated with, endorsed by, or maintained by System76 or the COSMIC Desktop project.
+> Unofficial community tooling. COSMIC Workspace Steward is not affiliated with,
+> endorsed by, or maintained by System76 or the COSMIC Desktop project.
 
 ## Goals
 

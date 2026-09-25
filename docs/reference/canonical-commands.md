@@ -1,5 +1,10 @@
 # Canonical Commands
 
+> **Current CT reference deployment:** These commands document the currently
+> implemented CT-specific wrapper, profiles, session assets, and launch paths.
+> They are not the future generic COSMIC Workspace Steward CLI contract.
+
+
 ## Cold start
 
 Start the complete managed WS1–WS6 set:
