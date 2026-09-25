@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-DEFAULT_TIMEOUT=180
-PROFILE_FAMILY='sysadmin'
-PROFILE_MIN=1
-PROFILE_MAX=6
+PROFILE_DEFAULT_TIMEOUT=180
+DEFAULT_PROFILE_FAMILY='sysadmin'
+PROFILE_WORKSPACE_MIN=1
+PROFILE_WORKSPACE_MAX=6
 
 fail() {
   printf 'ERROR: %s\n' "$*" >&2
@@ -50,25 +50,28 @@ is_positive_number() {
   awk -v value="$value" 'BEGIN { exit !(value > 0) }'
 }
 
-run_sysadmin() {
-  local number="$1"
-  shift
+run_profile() {
+  local family="$1"
+  local workspace="$2"
+  shift 2
 
-  local timeout="$DEFAULT_TIMEOUT"
+  local timeout="$PROFILE_DEFAULT_TIMEOUT"
   local dry_run=0
 
-  [[ "$number" =~ ^[0-9]+$ ]] ||
-    fail "Workspace number must be an integer from $PROFILE_MIN through $PROFILE_MAX."
+  [[ "$family" == "$DEFAULT_PROFILE_FAMILY" ]] ||
+    fail "Unsupported profile family: $family"
 
-  (( number >= PROFILE_MIN && number <= PROFILE_MAX )) ||
-    fail "Unsupported sysadmin workspace $number; supported range is $PROFILE_MIN through $PROFILE_MAX."
+  [[ "$workspace" =~ ^[0-9]+$ ]] ||
+    fail "Workspace number must be an integer from $PROFILE_WORKSPACE_MIN through $PROFILE_WORKSPACE_MAX."
+
+  (( workspace >= PROFILE_WORKSPACE_MIN && workspace <= PROFILE_WORKSPACE_MAX )) ||
+    fail "Unsupported $family workspace $workspace; supported range is $PROFILE_WORKSPACE_MIN through $PROFILE_WORKSPACE_MAX."
 
   while (($#)); do
     case "$1" in
       --timeout)
         (($# >= 2)) ||
           fail '--timeout requires a positive number of seconds.'
-
         timeout="$2"
         shift 2
         ;;
@@ -81,7 +84,7 @@ run_sysadmin() {
         exit 0
         ;;
       *)
-        fail "Unknown sysadmin option: $1"
+        fail "Unknown $family option: $1"
         ;;
     esac
   done
@@ -92,15 +95,16 @@ run_sysadmin() {
   command -v cosmic-wm >/dev/null 2>&1 ||
     fail 'cosmic-wm is not available on PATH.'
 
-  local profile="${PROFILE_FAMILY}-ws${number}"
+  local profile_name="${family}-ws${workspace}"
 
   if ((dry_run)); then
-    printf 'DRY RUN: cosmic-wm start %q --timeout %q\n' "$profile" "$timeout"
-    exit 0
+    printf 'DRY RUN: cosmic-wm start %q --timeout %q\n' \
+      "$profile_name" "$timeout"
+    return 0
   fi
 
-  printf 'Re-syncing %s with timeout %ss.\n' "$profile" "$timeout"
-  exec cosmic-wm start "$profile" --timeout "$timeout"
+  printf 'Re-syncing %s with timeout %ss.\n' "$profile_name" "$timeout"
+  exec cosmic-wm start "$profile_name" --timeout "$timeout"
 }
 
 main() {
@@ -113,8 +117,7 @@ main() {
     sysadmin)
       (($# >= 2)) ||
         fail 'Usage: ws-man sysadmin NUMBER [--timeout SECONDS] [--dry-run]'
-
-      run_sysadmin "$2" "${@:3}"
+      run_profile "$1" "$2" "${@:3}"
       ;;
     status)
       (($# == 1)) || fail 'Usage: ws-man status'
