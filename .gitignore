@@ -35,3 +35,6 @@ private/
 browser-profiles/
 cookies/
 sessionstore*
+
+# Python packaging metadata
+*.egg-info/
